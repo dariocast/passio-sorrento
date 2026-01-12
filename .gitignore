@@ -1,0 +1,16 @@
+# Common
+.DS_Store
+*.log
+.idea/
+.vscode/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+bin/
+out/
