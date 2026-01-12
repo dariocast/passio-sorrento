@@ -8,7 +8,7 @@ from functools import wraps
 from flask import Blueprint, jsonify, request
 
 from . import db
-from .models import Confraternity, Procession, Tracking
+from .models import Confraternity, Procession, Tracking, ProcessionLog
 
 api_bp = Blueprint('api', __name__)
 
@@ -164,3 +164,100 @@ def stop_tracking(procession_id):
     db.session.commit()
     
     return jsonify({'message': 'Tracking stopped', 'procession_id': procession_id})
+
+
+# ============================================================================
+# ProcessionLog Tracking Endpoints (Simplified for Capofila device)
+# ============================================================================
+
+CAPOFILA_SECRET = 'capofila123'
+
+
+@api_bp.route('/tracking/log', methods=['POST'])
+def log_tracking_position():
+    """
+    Log a new GPS position for a confraternity's procession.
+    Uses a simple secret-based authentication for the capofila device.
+    
+    Expected JSON body:
+        {
+            "confraternity_id": "uuid",
+            "lat": float,
+            "lng": float,
+            "secret": "capofila123"
+        }
+    
+    Returns:
+        JSON object with the logged position data.
+    """
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({'data': None, 'error': 'No JSON data provided'}), 400
+    
+    # Simple secret-based auth
+    secret = data.get('secret')
+    if secret != CAPOFILA_SECRET:
+        return jsonify({'data': None, 'error': 'Unauthorized - invalid secret'}), 401
+    
+    # Validate required fields
+    required_fields = ['confraternity_id', 'lat', 'lng']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'data': None, 'error': f'Missing required field: {field}'}), 400
+    
+    confraternity_id = data['confraternity_id']
+    latitude = data['lat']
+    longitude = data['lng']
+    
+    # Validate confraternity exists
+    confraternity = Confraternity.query.get(confraternity_id)
+    if not confraternity:
+        return jsonify({'data': None, 'error': 'Confraternity not found'}), 404
+    
+    # Validate coordinates
+    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+        return jsonify({'data': None, 'error': 'Invalid coordinates'}), 400
+    
+    # Create new log entry
+    log = ProcessionLog(
+        confraternity_id=confraternity_id,
+        latitude=latitude,
+        longitude=longitude,
+    )
+    db.session.add(log)
+    db.session.commit()
+    
+    return jsonify({'data': log.to_dict(), 'error': None}), 200
+
+
+@api_bp.route('/tracking/live', methods=['GET'])
+def get_live_tracking():
+    """
+    Get the latest position log for each confraternity that has tracking data.
+    
+    Returns:
+        JSON object with array of latest tracking positions.
+        Response format: {"data": [...], "error": null}
+    """
+    from sqlalchemy import func
+    
+    # Subquery to get the max timestamp for each confraternity
+    subquery = db.session.query(
+        ProcessionLog.confraternity_id,
+        func.max(ProcessionLog.timestamp).label('max_timestamp')
+    ).group_by(ProcessionLog.confraternity_id).subquery()
+    
+    # Join with the main table to get full records
+    latest_logs = db.session.query(ProcessionLog).join(
+        subquery,
+        db.and_(
+            ProcessionLog.confraternity_id == subquery.c.confraternity_id,
+            ProcessionLog.timestamp == subquery.c.max_timestamp
+        )
+    ).all()
+    
+    result = [log.to_dict() for log in latest_logs]
+    
+    return jsonify({'data': result, 'error': None})
+

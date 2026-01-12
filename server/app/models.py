@@ -84,3 +84,30 @@ class Tracking(db.Model):
             'timestamp': self.timestamp.isoformat() if self.timestamp else None,
             'last_update': self.last_update.isoformat() if self.last_update else None,
         }
+
+
+class ProcessionLog(db.Model):
+    """
+    Stores historical GPS position logs for procession tracking.
+    Each entry represents a single position update from the capofila device.
+    """
+    __tablename__ = 'procession_logs'
+    
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    confraternity_id = db.Column(db.String(36), db.ForeignKey('confraternities.id'), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationship
+    confraternity = db.relationship('Confraternity', backref=db.backref('logs', lazy=True))
+    
+    def to_dict(self):
+        """Convert model to dictionary for JSON serialization."""
+        return {
+            'id': self.id,
+            'confraternity_id': self.confraternity_id,
+            'lat': self.latitude,
+            'lng': self.longitude,
+            'last_updated': self.timestamp.isoformat() + 'Z' if self.timestamp else None,
+        }
