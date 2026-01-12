@@ -81,3 +81,62 @@ Write operations (POST/PUT/DELETE) require an API Key passed in the headers.
   "procession_id": "proc-1"
 }
 ```
+
+---
+
+## ProcessionLog Tracking (Capofila Device)
+
+These simplified endpoints are designed for the "capofila" device that leads each procession.
+
+### 6. Log Tracking Position
+`POST /tracking/log`
+- **Auth**: Capofila Secret (`secret` field in body)
+- **Purpose**: Log a new GPS position for a confraternity's procession.
+- **Body**:
+```json
+{
+  "confraternity_id": "uuid-1",
+  "lat": 40.6263,
+  "lng": 14.3758,
+  "secret": "capofila123"
+}
+```
+- **Response**: `200 OK`
+```json
+{
+  "data": {
+    "id": 1,
+    "confraternity_id": "uuid-1",
+    "lat": 40.6263,
+    "lng": 14.3758,
+    "last_updated": "2026-01-12T22:00:00Z"
+  },
+  "error": null
+}
+```
+- **Error Response**: `401 Unauthorized`
+```json
+{
+  "data": null,
+  "error": "Unauthorized - invalid secret"
+}
+```
+
+### 7. Get Live Tracking (ProcessionLog)
+`GET /tracking/live`
+- **Purpose**: Retrieve the latest position log for each active confraternity.
+- **Response**: `200 OK`
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "confraternity_id": "uuid-1",
+      "lat": 40.6263,
+      "lng": 14.3758,
+      "last_updated": "2026-01-12T22:00:00Z"
+    }
+  ],
+  "error": null
+}
+```

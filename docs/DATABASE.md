@@ -6,6 +6,8 @@ The project uses **SQLite** for development and production simplicity.
 
 ```
 [Confraternity] 1 --- * [Procession] 1 --- 0/1 [Tracking]
+       |
+       +--- * [ProcessionLog]
 ```
 
 ## Tables
@@ -45,3 +47,15 @@ Stores the latest coordinates for an active procession.
 | `longitude` | Float | GPS Longitude |
 | `timestamp` | DateTime | Creation time |
 | `last_update` | DateTime | Last update time |
+
+### 4. `procession_logs`
+Stores historical GPS position logs for procession tracking (capofila device).
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | Integer (PK) | Auto-increment ID |
+| `confraternity_id`| String (FK) | Reference to `confraternities.id` |
+| `latitude` | Float | GPS Latitude |
+| `longitude` | Float | GPS Longitude |
+| `timestamp` | DateTime | Time of position log (ISO 8601) |
+
