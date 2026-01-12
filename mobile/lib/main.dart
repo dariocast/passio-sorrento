@@ -5,8 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
-import 'features/home/data/datasources/home_remote_data_source.dart';
-import 'features/home/data/repositories/home_repository_impl.dart';
+import 'features/home/data/repositories/home_repository_http.dart';
 import 'features/home/domain/repositories/home_repository.dart';
 import 'features/tracking/data/datasources/tracking_remote_data_source.dart';
 import 'features/tracking/data/repositories/tracking_repository_impl.dart';
@@ -29,8 +28,7 @@ class HolyweekApp extends StatelessWidget {
     // Create shared HTTP client
     final httpClient = http.Client();
 
-    // Create data sources
-    final homeRemoteDataSource = HomeRemoteDataSource(client: httpClient);
+    // Create data sources for tracking and weather
     final trackingRemoteDataSource = TrackingRemoteDataSource(client: httpClient);
     // Note: WeatherRemoteDataSource requires an API key - configure in production
     final weatherRemoteDataSource = WeatherRemoteDataSource(
@@ -39,7 +37,8 @@ class HolyweekApp extends StatelessWidget {
     );
 
     // Create repository implementations
-    final homeRepository = HomeRepositoryImpl(remoteDataSource: homeRemoteDataSource);
+    // Using HomeRepositoryHttp for real backend communication
+    final homeRepository = HomeRepositoryHttp(client: httpClient);
     final trackingRepository = TrackingRepositoryImpl(remoteDataSource: trackingRemoteDataSource);
     final weatherRepository = WeatherRepositoryImpl(remoteDataSource: weatherRemoteDataSource);
 
