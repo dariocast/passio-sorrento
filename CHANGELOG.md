@@ -19,4 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - App factory implementation.
   - SQLAlchemy models for Confraternities, Processions, and Tracking.
   - REST API blueprints with API Key protection.
-- **Documentation**: Comprehensive `README.md` and `PRD.md`.
+- **Documentation**: 
+  - Comprehensive `README.md` and `PRD.md`.
+  - Detailed architecture breakdown in `docs/ARCHITECTURE.md`.
+  - API Reference guide in `docs/API_REFERENCE.md`.
+  - Database schema documentation in `docs/DATABASE.md`.
+  - Developer contribution guide in `docs/CONTRIBUTING.md`.
+
