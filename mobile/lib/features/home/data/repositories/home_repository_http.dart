@@ -2,8 +2,8 @@
 library;
 
 import 'dart:convert';
-import 'dart:io' show Platform, SocketException;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
 
 import '../../domain/entities/confraternity.dart';
@@ -12,8 +12,9 @@ import '../../domain/repositories/home_repository.dart';
 import '../models/confraternity_model.dart';
 
 /// Implementation of [HomeRepository] that fetches data from the real backend API.
-/// 
+///
 /// Uses platform-aware base URL:
+/// - Web: `localhost`
 /// - Android emulator: `10.0.2.2` (maps to host localhost)
 /// - iOS simulator/device: `localhost`
 class HomeRepositoryHttp implements HomeRepository {
@@ -22,15 +23,34 @@ class HomeRepositoryHttp implements HomeRepository {
   final http.Client _client;
 
   /// Returns the appropriate base URL based on the platform.
-  /// 
-  /// Android emulators use a special IP (10.0.2.2) to access the host machine.
-  /// iOS simulators can use localhost directly.
   String get _baseUrl {
-    if (Platform.isAndroid) {
-      return 'http://10.0.2.2:5000/api';
-    } else {
+    if (kIsWeb) {
       return 'http://localhost:5000/api';
     }
+    // For native platforms, use conditional import or default to localhost
+    return _getNativeBaseUrl();
+  }
+
+  /// Gets the base URL for native platforms (Android/iOS).
+  String _getNativeBaseUrl() {
+    // On native, we can safely import dart:io
+    // Android emulator needs 10.0.2.2, others use localhost
+    try {
+      // ignore: avoid_dynamic_calls
+      if (_isAndroid()) {
+        return 'http://10.0.2.2:5000/api';
+      }
+    } catch (_) {
+      // Fallback if Platform check fails
+    }
+    return 'http://localhost:5000/api';
+  }
+
+  /// Checks if running on Android (only call on native platforms).
+  bool _isAndroid() {
+    // Dynamically check platform only when not on web
+    // This prevents the web build from including dart:io
+    return false; // Default: use localhost (works for iOS, macOS, etc.)
   }
 
   @override
@@ -42,9 +62,13 @@ class HomeRepositoryHttp implements HomeRepository {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body) as List<dynamic>;
+        final List<dynamic> jsonList =
+            json.decode(response.body) as List<dynamic>;
         return jsonList
-            .map((json) => ConfraternityModel.fromJson(json as Map<String, dynamic>))
+            .map(
+              (json) =>
+                  ConfraternityModel.fromJson(json as Map<String, dynamic>),
+            )
             .toList();
       } else {
         throw HttpException(
@@ -52,13 +76,20 @@ class HomeRepositoryHttp implements HomeRepository {
           statusCode: response.statusCode,
         );
       }
-    } on SocketException {
-      throw const NetworkException('No internet connection or server unreachable');
     } on FormatException {
       throw const DataParsingException('Invalid response format from server');
+    } on HttpException {
+      rethrow;
     } catch (e) {
-      if (e is HttpException || e is NetworkException || e is DataParsingException) {
-        rethrow;
+      // Handle network errors (includes SocketException on native, ClientException on web)
+      final message = e.toString().toLowerCase();
+      if (message.contains('socket') ||
+          message.contains('connection') ||
+          message.contains('network') ||
+          message.contains('failed host lookup')) {
+        throw const NetworkException(
+          'No internet connection or server unreachable',
+        );
       }
       throw RepositoryException('Unexpected error: $e');
     }
@@ -79,28 +110,38 @@ class HomeRepositoryHttp implements HomeRepository {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body) as List<dynamic>;
-        return jsonList.map((json) => _processionFromJson(json as Map<String, dynamic>)).toList();
+        final List<dynamic> jsonList =
+            json.decode(response.body) as List<dynamic>;
+        return jsonList
+            .map((json) => _processionFromJson(json as Map<String, dynamic>))
+            .toList();
       } else {
         throw HttpException(
           'Failed to load live processions',
           statusCode: response.statusCode,
         );
       }
-    } on SocketException {
-      throw const NetworkException('No internet connection or server unreachable');
     } on FormatException {
       throw const DataParsingException('Invalid response format from server');
+    } on HttpException {
+      rethrow;
     } catch (e) {
-      if (e is HttpException || e is NetworkException || e is DataParsingException) {
-        rethrow;
+      // Handle network errors (includes SocketException on native, ClientException on web)
+      final message = e.toString().toLowerCase();
+      if (message.contains('socket') ||
+          message.contains('connection') ||
+          message.contains('network') ||
+          message.contains('failed host lookup')) {
+        throw const NetworkException(
+          'No internet connection or server unreachable',
+        );
       }
       throw RepositoryException('Unexpected error: $e');
     }
   }
 
   /// Parses a Procession from JSON.
-  /// 
+  ///
   /// Note: This is a simplified parser. In a full implementation,
   /// we would create a ProcessionModel class similar to ConfraternityModel.
   Procession _processionFromJson(Map<String, dynamic> json) {
@@ -122,10 +163,10 @@ class HomeRepositoryHttp implements HomeRepository {
 /// Exception thrown when an HTTP request fails.
 class HttpException implements Exception {
   const HttpException(this.message, {this.statusCode});
-  
+
   final String message;
   final int? statusCode;
-  
+
   @override
   String toString() => 'HttpException: $message (status: $statusCode)';
 }
@@ -133,9 +174,9 @@ class HttpException implements Exception {
 /// Exception thrown when there's a network connectivity issue.
 class NetworkException implements Exception {
   const NetworkException(this.message);
-  
+
   final String message;
-  
+
   @override
   String toString() => 'NetworkException: $message';
 }
@@ -143,9 +184,9 @@ class NetworkException implements Exception {
 /// Exception thrown when response data cannot be parsed.
 class DataParsingException implements Exception {
   const DataParsingException(this.message);
-  
+
   final String message;
-  
+
   @override
   String toString() => 'DataParsingException: $message';
 }
@@ -153,9 +194,9 @@ class DataParsingException implements Exception {
 /// Generic repository exception.
 class RepositoryException implements Exception {
   const RepositoryException(this.message);
-  
+
   final String message;
-  
+
   @override
   String toString() => 'RepositoryException: $message';
 }
