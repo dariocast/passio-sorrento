@@ -31,17 +31,43 @@ def require_api_key(f):
 
 @api_bp.route('/health', methods=['GET'])
 def health_check():
-    """Health check endpoint."""
+    """Server health check
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: Server is healthy
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: healthy
+                timestamp:
+                  type: string
+                  format: date-time
+    """
     return jsonify({'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()})
 
 
 @api_bp.route('/confraternities', methods=['GET'])
 def get_confraternities():
-    """
-    Get all confraternities.
-    
-    Returns:
-        JSON array of confraternity objects.
+    """Get all confraternities
+    ---
+    tags:
+      - Confraternities
+    responses:
+      200:
+        description: List of all confraternities
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Confraternity'
     """
     confraternities = Confraternity.query.all()
     return jsonify([c.to_dict() for c in confraternities])
@@ -49,14 +75,27 @@ def get_confraternities():
 
 @api_bp.route('/confraternities/<confraternity_id>', methods=['GET'])
 def get_confraternity(confraternity_id):
-    """
-    Get a single confraternity by ID.
-    
-    Args:
-        confraternity_id: The confraternity's unique identifier.
-    
-    Returns:
-        JSON object of the confraternity or 404 error.
+    """Get a single confraternity by ID
+    ---
+    tags:
+      - Confraternities
+    parameters:
+      - in: path
+        name: confraternity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: Unique identifier of the confraternity
+    responses:
+      200:
+        description: Confraternity details
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Confraternity'
+      404:
+        description: Confraternity not found
     """
     confraternity = Confraternity.query.get_or_404(confraternity_id)
     return jsonify(confraternity.to_dict())
@@ -64,11 +103,28 @@ def get_confraternity(confraternity_id):
 
 @api_bp.route('/processions', methods=['GET'])
 def get_processions():
-    """
-    Get all processions with their confraternity info.
-    
-    Returns:
-        JSON array of procession objects with confraternity details.
+    """Get all processions with confraternity info
+    ---
+    tags:
+      - Processions
+    responses:
+      200:
+        description: List of all processions with confraternity details
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/Procession'
+                  - type: object
+                    properties:
+                      confraternity_name:
+                        type: string
+                      confraternity_color:
+                        type: string
+                      municipality:
+                        type: string
     """
     processions = Procession.query.all()
     result = []
@@ -85,11 +141,33 @@ def get_processions():
 
 @api_bp.route('/processions/live', methods=['GET'])
 def get_live_processions():
-    """
-    Get all currently live processions with their tracking data.
-    
-    Returns:
-        JSON array of live tracking objects.
+    """Get currently live processions with tracking data
+    ---
+    tags:
+      - Processions
+    responses:
+      200:
+        description: List of live processions with current positions
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  procession_id:
+                    type: string
+                  confraternity_id:
+                    type: string
+                  day:
+                    type: string
+                  latitude:
+                    type: number
+                  longitude:
+                    type: number
+                  timestamp:
+                    type: string
+                    format: date-time
     """
     live_processions = Procession.query.filter_by(is_live=True).all()
     result = []
@@ -196,20 +274,57 @@ CAPOFILA_SECRET = 'capofila123'
 
 @api_bp.route('/tracking/log', methods=['POST'])
 def log_tracking_position():
-    """
-    Log a new GPS position for a confraternity's procession.
-    Uses a simple secret-based authentication for the capofila device.
-    
-    Expected JSON body:
-        {
-            "confraternity_id": "uuid",
-            "lat": float,
-            "lng": float,
-            "secret": "capofila123"
-        }
-    
-    Returns:
-        JSON object with the logged position data.
+    """Log a new GPS position for a confraternity
+    ---
+    tags:
+      - Tracking
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - confraternity_id
+              - lat
+              - lng
+              - secret
+            properties:
+              confraternity_id:
+                type: string
+                format: uuid
+              lat:
+                type: number
+                format: float
+                minimum: -90
+                maximum: 90
+              lng:
+                type: number
+                format: float
+                minimum: -180
+                maximum: 180
+              secret:
+                type: string
+                description: Capofila device authentication secret
+    responses:
+      200:
+        description: Position logged successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  $ref: '#/components/schemas/TrackingPosition'
+                error:
+                  type: string
+                  nullable: true
+      400:
+        description: Invalid request data
+      401:
+        description: Unauthorized - invalid secret
+      404:
+        description: Confraternity not found
     """
     data = request.get_json()
     
@@ -254,12 +369,25 @@ def log_tracking_position():
 
 @api_bp.route('/tracking/live', methods=['GET'])
 def get_live_tracking():
-    """
-    Get the latest position log for each confraternity that has tracking data.
-    
-    Returns:
-        JSON object with array of latest tracking positions.
-        Response format: {"data": [...], "error": null}
+    """Get latest position for each confraternity
+    ---
+    tags:
+      - Tracking
+    responses:
+      200:
+        description: Latest tracking positions for all confraternities
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TrackingPosition'
+                error:
+                  type: string
+                  nullable: true
     """
     from sqlalchemy import func
     
