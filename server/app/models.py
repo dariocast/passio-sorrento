@@ -19,8 +19,9 @@ class Confraternity(db.Model):
     coat_of_arms = db.Column(db.String(500), nullable=True)
     history = db.Column(db.Text, nullable=True)
     
-    # Relationship
+    # Relationships
     processions = db.relationship('Procession', backref='confraternity', lazy=True)
+    tracking_logs = db.relationship('TrackingLog', backref='confraternity', lazy=True)
     
     def to_dict(self):
         """Convert model to dictionary for JSON serialization."""
@@ -47,8 +48,8 @@ class Procession(db.Model):
     expected_return_time = db.Column(db.DateTime, nullable=True)
     is_live = db.Column(db.Boolean, default=False)
     
-    # Relationship
-    tracking = db.relationship('Tracking', backref='procession', uselist=False, lazy=True)
+    # Relationships
+    tracking_logs = db.relationship('TrackingLog', backref='procession', lazy=True)
     
     def to_dict(self):
         """Convert model to dictionary for JSON serialization."""
@@ -62,52 +63,36 @@ class Procession(db.Model):
         }
 
 
-class Tracking(db.Model):
+class TrackingLog(db.Model):
     """
-    Represents live tracking data for a procession.
-    """
-    __tablename__ = 'tracking'
+    Unified GPS position log for procession tracking.
     
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    procession_id = db.Column(db.String(36), db.ForeignKey('processions.id'), nullable=False, unique=True)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
-    last_update = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
-    def to_dict(self):
-        """Convert model to dictionary for JSON serialization."""
-        return {
-            'procession_id': self.procession_id,
-            'latitude': self.latitude,
-            'longitude': self.longitude,
-            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
-            'last_update': self.last_update.isoformat() if self.last_update else None,
-        }
-
-
-class ProcessionLog(db.Model):
+    Each entry represents a single GPS position update from a capofila device.
+    The latest entry per confraternity represents the current position.
+    Historical entries are preserved for route replay/analysis.
     """
-    Stores historical GPS position logs for procession tracking.
-    Each entry represents a single position update from the capofila device.
-    """
-    __tablename__ = 'procession_logs'
+    __tablename__ = 'tracking_logs'
     
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     confraternity_id = db.Column(db.String(36), db.ForeignKey('confraternities.id'), nullable=False)
+    procession_id = db.Column(db.String(36), db.ForeignKey('processions.id'), nullable=True)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     
-    # Relationship
-    confraternity = db.relationship('Confraternity', backref=db.backref('logs', lazy=True))
+    # Index for efficient "latest position" queries
+    __table_args__ = (
+        db.Index('idx_tracking_confraternity_timestamp', 'confraternity_id', 'timestamp'),
+    )
     
     def to_dict(self):
         """Convert model to dictionary for JSON serialization."""
         return {
             'id': self.id,
             'confraternity_id': self.confraternity_id,
+            'procession_id': self.procession_id,
             'lat': self.latitude,
             'lng': self.longitude,
             'last_updated': self.timestamp.isoformat() + 'Z' if self.timestamp else None,
         }
+

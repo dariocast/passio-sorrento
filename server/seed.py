@@ -192,14 +192,14 @@ def create_tracking_logs(confraternities):
 
 def seed_database():
     """Seed the database with initial data."""
-    from app.models import ProcessionLog
+    from app.models import TrackingLog
     
     app = create_app()
     
     with app.app_context():
         # Clear existing data
         print("🗑️  Clearing existing data...")
-        ProcessionLog.query.delete()
+        TrackingLog.query.delete()
         Procession.query.delete()
         Confraternity.query.delete()
         db.session.commit()
@@ -225,7 +225,7 @@ def seed_database():
         print("📍 Inserting sample tracking data...")
         tracking_logs = create_tracking_logs(CONFRATERNITIES_DATA)
         for log_data in tracking_logs:
-            log = ProcessionLog(**log_data)
+            log = TrackingLog(**log_data)
             db.session.add(log)
         db.session.commit()
         print(f"   ✅ Inserted {len(tracking_logs)} tracking positions")
@@ -234,7 +234,7 @@ def seed_database():
         print("\n📊 Database Summary:")
         print(f"   - Confraternities: {Confraternity.query.count()}")
         print(f"   - Processions: {Procession.query.count()}")
-        print(f"   - Tracking Logs: {ProcessionLog.query.count()}")
+        print(f"   - Tracking Logs: {TrackingLog.query.count()}")
         
         # List all confraternities
         print("\n📋 Confraternities in database:")
