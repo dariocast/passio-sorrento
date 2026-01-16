@@ -62,6 +62,27 @@ def get_confraternity(confraternity_id):
     return jsonify(confraternity.to_dict())
 
 
+@api_bp.route('/processions', methods=['GET'])
+def get_processions():
+    """
+    Get all processions with their confraternity info.
+    
+    Returns:
+        JSON array of procession objects with confraternity details.
+    """
+    processions = Procession.query.all()
+    result = []
+    
+    for p in processions:
+        proc_data = p.to_dict()
+        proc_data['confraternity_name'] = p.confraternity.name
+        proc_data['confraternity_color'] = p.confraternity.color
+        proc_data['municipality'] = p.confraternity.municipality
+        result.append(proc_data)
+    
+    return jsonify(result)
+
+
 @api_bp.route('/processions/live', methods=['GET'])
 def get_live_processions():
     """
@@ -257,7 +278,13 @@ def get_live_tracking():
         )
     ).all()
     
-    result = [log.to_dict() for log in latest_logs]
+    # Enrich with confraternity info for map styling
+    result = []
+    for log in latest_logs:
+        log_data = log.to_dict()
+        log_data['confraternity_name'] = log.confraternity.name
+        log_data['confraternity_color'] = log.confraternity.color
+        result.append(log_data)
     
     return jsonify({'data': result, 'error': None})
 

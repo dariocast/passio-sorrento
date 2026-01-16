@@ -119,13 +119,87 @@ def create_processions(confraternities):
     return processions
 
 
+def create_tracking_logs(confraternities):
+    """
+    Create sample ProcessionLog entries for demo/testing.
+    Each confraternity gets 3-5 GPS positions along their procession route.
+    """
+    from datetime import timedelta
+    
+    # Real GPS coordinates for Sorrento Peninsula procession routes
+    tracking_routes = {
+        "Sorrento": [
+            # Duomo -> Corso Italia -> Piazza Tasso -> Via S. Cesareo -> Marina Grande
+            (40.6263, 14.3758),  # Duomo
+            (40.6269, 14.3746),  # Corso Italia
+            (40.6258, 14.3755),  # Piazza Tasso
+            (40.6256, 14.3761),  # Via S. Cesareo
+            (40.6237, 14.3769),  # Marina Grande
+        ],
+        "Meta": [
+            # Chiesa SS. Rosario -> Via Caracciolo -> Lungomare
+            (40.6412, 14.4141),  # Chiesa
+            (40.6415, 14.4155),  # Via Caracciolo
+            (40.6408, 14.4170),  # Lungomare
+            (40.6400, 14.4185),  # Porto
+        ],
+        "Piano di Sorrento": [
+            # Basilica -> Corso Italia -> Marina di Cassano
+            (40.6334, 14.4242),  # Basilica
+            (40.6340, 14.4230),  # Corso Italia
+            (40.6328, 14.4255),  # Via delle Rose
+            (40.6310, 14.4280),  # Marina di Cassano
+        ],
+        "Sant'Agnello": [
+            # Chiesa S. Giuseppe -> Via Crawford -> Lungomare
+            (40.6291, 14.3985),  # Chiesa
+            (40.6285, 14.3998),  # Via Crawford
+            (40.6275, 14.4015),  # Lungomare
+        ],
+        "Vico Equense": [
+            # SS. Annunziata -> Corso Umberto -> Marina
+            (40.6589, 14.4274),  # Chiesa
+            (40.6582, 14.4260),  # Corso Umberto
+            (40.6570, 14.4245),  # Piazza
+            (40.6555, 14.4230),  # Marina
+        ],
+        "Massa Lubrense": [
+            # Chiesa del Carmine -> Via Partenope -> Porto
+            (40.6106, 14.3497),  # Chiesa
+            (40.6095, 14.3510),  # Via Partenope
+            (40.6080, 14.3525),  # Marina della Lobra
+        ],
+    }
+    
+    logs = []
+    base_time = datetime.utcnow() - timedelta(hours=2)  # Started 2 hours ago
+    
+    for conf in confraternities:
+        municipality = conf["municipality"]
+        route = tracking_routes.get(municipality, tracking_routes["Sorrento"])
+        
+        for i, (lat, lng) in enumerate(route):
+            log_time = base_time + timedelta(minutes=i * 15)  # 15 min between points
+            logs.append({
+                "confraternity_id": conf["id"],
+                "latitude": lat,
+                "longitude": lng,
+                "timestamp": log_time,
+            })
+    
+    return logs
+
+
 def seed_database():
     """Seed the database with initial data."""
+    from app.models import ProcessionLog
+    
     app = create_app()
     
     with app.app_context():
         # Clear existing data
         print("🗑️  Clearing existing data...")
+        ProcessionLog.query.delete()
         Procession.query.delete()
         Confraternity.query.delete()
         db.session.commit()
@@ -147,10 +221,20 @@ def seed_database():
         db.session.commit()
         print(f"   ✅ Inserted {len(processions_data)} processions")
         
+        # Insert tracking logs (sample data for demo)
+        print("📍 Inserting sample tracking data...")
+        tracking_logs = create_tracking_logs(CONFRATERNITIES_DATA)
+        for log_data in tracking_logs:
+            log = ProcessionLog(**log_data)
+            db.session.add(log)
+        db.session.commit()
+        print(f"   ✅ Inserted {len(tracking_logs)} tracking positions")
+        
         # Verify data
         print("\n📊 Database Summary:")
         print(f"   - Confraternities: {Confraternity.query.count()}")
         print(f"   - Processions: {Procession.query.count()}")
+        print(f"   - Tracking Logs: {ProcessionLog.query.count()}")
         
         # List all confraternities
         print("\n📋 Confraternities in database:")
@@ -162,3 +246,4 @@ def seed_database():
 
 if __name__ == "__main__":
     seed_database()
+
