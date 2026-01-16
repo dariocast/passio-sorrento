@@ -11,7 +11,7 @@ import '../datasources/tracking_remote_data_source.dart';
 /// Implementation of [TrackingRepository].
 class TrackingRepositoryImpl implements TrackingRepository {
   TrackingRepositoryImpl({required TrackingRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   final TrackingRemoteDataSource _remoteDataSource;
   final _trackingController = StreamController<List<TrackingData>>.broadcast();
@@ -24,7 +24,9 @@ class TrackingRepositoryImpl implements TrackingRepository {
   }
 
   @override
-  Future<TrackingData?> getTrackingDataForProcession(String processionId) async {
+  Future<TrackingData?> getTrackingDataForProcession(
+    String processionId,
+  ) async {
     final allData = await getLiveTrackingData();
     return allData.where((d) => d.processionId == processionId).firstOrNull;
   }
@@ -57,14 +59,19 @@ class TrackingRepositoryImpl implements TrackingRepository {
   }
 
   TrackingData _trackingDataFromJson(Map<String, dynamic> json) {
+    // Map from /tracking/live response format
+    // API returns: confraternity_id, lat, lng, last_updated, confraternity_name, confraternity_color
+    final timestamp = json['last_updated'] as String;
     return TrackingData(
-      processionId: json['procession_id'] as String,
+      processionId: json['confraternity_id'] as String,
       position: LatLng(
-        (json['latitude'] as num).toDouble(),
-        (json['longitude'] as num).toDouble(),
+        (json['lat'] as num).toDouble(),
+        (json['lng'] as num).toDouble(),
       ),
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      lastUpdate: DateTime.parse(json['last_update'] as String),
+      timestamp: DateTime.parse(timestamp.replaceAll('Z', '')),
+      lastUpdate: DateTime.parse(timestamp.replaceAll('Z', '')),
+      color: json['confraternity_color'] as String? ?? '#5C1A1B',
+      name: json['confraternity_name'] as String?,
     );
   }
 }

@@ -5,35 +5,70 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../../core/router/app_router.dart';
 import '../../domain/repositories/tracking_repository.dart';
 import '../cubit/tracking_cubit.dart';
 
 /// Page showing live tracking of processions on a map.
 class TrackingPage extends StatelessWidget {
-  const TrackingPage({super.key});
+  const TrackingPage({super.key, this.args});
+
+  final TrackingPageArgs? args;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => TrackingCubit(
         repository: context.read<TrackingRepository>(),
+        confraternityIdFilter: args?.confraternityId,
       )..startWatching(),
-      child: const _TrackingPageContent(),
+      child: _TrackingPageContent(args: args),
     );
   }
 }
 
-class _TrackingPageContent extends StatelessWidget {
-  const _TrackingPageContent();
+class _TrackingPageContent extends StatefulWidget {
+  const _TrackingPageContent({this.args});
+
+  final TrackingPageArgs? args;
+
+  @override
+  State<_TrackingPageContent> createState() => _TrackingPageContentState();
+}
+
+class _TrackingPageContentState extends State<_TrackingPageContent> {
+  final MapController _mapController = MapController();
 
   // Sorrento Peninsula center coordinates
   static const _sorrentoCenter = LatLng(40.6263, 14.3758);
 
   @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
+  }
+
+  void _fitBounds(List<LatLng> points) {
+    if (points.isEmpty) return;
+    if (points.length == 1) {
+      _mapController.move(points.first, 15);
+      return;
+    }
+    final bounds = LatLngBounds.fromPoints(points);
+    _mapController.fitCamera(
+      CameraFit.bounds(bounds: bounds, padding: const EdgeInsets.all(50)),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final title = widget.args?.confraternityName != null
+        ? 'Tracciamento ${widget.args!.confraternityName}'
+        : 'Tracciamento Live';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tracciamento Live'),
+        title: Text(title),
         actions: [
           BlocBuilder<TrackingCubit, TrackingState>(
             builder: (context, state) {
@@ -41,7 +76,11 @@ class _TrackingPageContent extends StatelessWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Chip(
-                  avatar: const Icon(Icons.fiber_manual_record, color: Colors.red, size: 12),
+                  avatar: const Icon(
+                    Icons.fiber_manual_record,
+                    color: Colors.red,
+                    size: 12,
+                  ),
                   label: Text('${state.trackingData.length} attive'),
                 ),
               );
@@ -49,20 +88,38 @@ class _TrackingPageContent extends StatelessWidget {
           ),
         ],
       ),
-      body: BlocBuilder<TrackingCubit, TrackingState>(
+      body: BlocConsumer<TrackingCubit, TrackingState>(
+        listener: (context, state) {
+          // Auto-zoom to fit markers when data loads
+          if (state.status == TrackingStatus.success &&
+              state.trackingData.isNotEmpty) {
+            Future.delayed(const Duration(milliseconds: 300), () {
+              _fitBounds(state.trackingData.map((t) => t.position).toList());
+            });
+          }
+        },
         builder: (context, state) {
           return Stack(
             children: [
               // Map
               FlutterMap(
+                mapController: _mapController,
                 options: MapOptions(
                   initialCenter: _sorrentoCenter,
                   initialZoom: 13,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.all,
+                  ),
+                  onTap: (_, __) {
+                    // Deselect when tapping map
+                    context.read<TrackingCubit>().selectProcession(null);
+                  },
                 ),
                 children: [
                   // OpenStreetMap tile layer
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate:
+                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                     userAgentPackageName: 'xyz.dariocast.holyweek',
                   ),
 
@@ -72,12 +129,43 @@ class _TrackingPageContent extends StatelessWidget {
                       return Marker(
                         point: tracking.position,
                         width: 50,
-                        height: 50,
-                        child: _LiveMarker(
-                          isSelected: state.selectedProcessionId == tracking.processionId,
-                          onTap: () => context.read<TrackingCubit>().selectProcession(
-                                tracking.processionId,
+                        height: 80, // Extra height for label
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Label (shown when selected)
+                            if (state.selectedProcessionId ==
+                                    tracking.processionId &&
+                                tracking.name != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  tracking.name!,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
+                            // Marker
+                            _LiveMarker(
+                              color: _parseColor(tracking.color),
+                              isSelected:
+                                  state.selectedProcessionId ==
+                                  tracking.processionId,
+                              onTap: () => context
+                                  .read<TrackingCubit>()
+                                  .selectProcession(tracking.processionId),
+                            ),
+                          ],
                         ),
                       );
                     }).toList(),
@@ -127,10 +215,13 @@ class _TrackingPageContent extends StatelessWidget {
                           const Icon(Icons.error, color: Colors.red),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(state.errorMessage ?? 'Errore di connessione'),
+                            child: Text(
+                              state.errorMessage ?? 'Errore di connessione',
+                            ),
                           ),
                           TextButton(
-                            onPressed: () => context.read<TrackingCubit>().loadData(),
+                            onPressed: () =>
+                                context.read<TrackingCubit>().loadData(),
                             child: const Text('Riprova'),
                           ),
                         ],
@@ -140,7 +231,8 @@ class _TrackingPageContent extends StatelessWidget {
                 ),
 
               // No live processions message
-              if (state.status == TrackingStatus.success && state.trackingData.isEmpty)
+              if (state.status == TrackingStatus.success &&
+                  state.trackingData.isEmpty)
                 Positioned(
                   bottom: 16,
                   left: 16,
@@ -150,10 +242,15 @@ class _TrackingPageContent extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          Icon(Icons.info_outline, color: Theme.of(context).colorScheme.primary),
+                          Icon(
+                            Icons.info_outline,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                           const SizedBox(width: 12),
                           const Expanded(
-                            child: Text('Nessuna processione attiva al momento'),
+                            child: Text(
+                              'Nessuna processione attiva al momento',
+                            ),
                           ),
                         ],
                       ),
@@ -166,15 +263,27 @@ class _TrackingPageContent extends StatelessWidget {
       ),
     );
   }
+
+  /// Parses a hex color string to a Color.
+  Color _parseColor(String hexColor) {
+    try {
+      final hex = hexColor.replaceFirst('#', '');
+      return Color(int.parse('FF$hex', radix: 16));
+    } catch (_) {
+      return const Color(0xFF5C1A1B); // Fallback color
+    }
+  }
 }
 
 /// Custom marker widget for live processions.
 class _LiveMarker extends StatelessWidget {
   const _LiveMarker({
+    required this.color,
     required this.isSelected,
     required this.onTap,
   });
 
+  final Color color;
   final bool isSelected;
   final VoidCallback onTap;
 
@@ -187,12 +296,9 @@ class _LiveMarker extends StatelessWidget {
         width: isSelected ? 50 : 40,
         height: isSelected ? 50 : 40,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary,
+          color: color,
           shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white,
-            width: 3,
-          ),
+          border: Border.all(color: Colors.white, width: 3),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(50),
@@ -201,11 +307,7 @@ class _LiveMarker extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(
-          Icons.church,
-          color: Colors.white,
-          size: 20,
-        ),
+        child: const Icon(Icons.church, color: Colors.white, size: 20),
       ),
     );
   }

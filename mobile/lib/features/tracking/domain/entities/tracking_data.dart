@@ -11,9 +11,11 @@ class TrackingData extends Equatable {
     required this.position,
     required this.timestamp,
     required this.lastUpdate,
+    required this.color,
+    this.name,
   });
 
-  /// Reference to the procession being tracked.
+  /// Reference to the procession/confraternity being tracked.
   final String processionId;
 
   /// Current geographic position.
@@ -25,6 +27,19 @@ class TrackingData extends Equatable {
   /// Last update timestamp.
   final DateTime lastUpdate;
 
+  /// Confraternity color in hex format (e.g., "#000000").
+  final String color;
+
+  /// Confraternity name (optional).
+  final String? name;
+
   @override
-  List<Object?> get props => [processionId, position, timestamp, lastUpdate];
+  List<Object?> get props => [
+    processionId,
+    position,
+    timestamp,
+    lastUpdate,
+    color,
+    name,
+  ];
 }

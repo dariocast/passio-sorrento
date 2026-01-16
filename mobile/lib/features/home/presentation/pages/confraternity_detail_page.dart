@@ -9,10 +9,7 @@ import '../cubit/home_cubit.dart';
 
 /// Page showing detailed information about a confraternity.
 class ConfraternityDetailPage extends StatelessWidget {
-  const ConfraternityDetailPage({
-    super.key,
-    required this.args,
-  });
+  const ConfraternityDetailPage({super.key, required this.args});
 
   final ConfraternityDetailArgs args;
 
@@ -21,9 +18,8 @@ class ConfraternityDetailPage extends StatelessWidget {
     final color = _parseColor(args.confraternityColor);
 
     return BlocProvider(
-      create: (context) => HomeCubit(
-        repository: context.read<HomeRepository>(),
-      )..loadData(),
+      create: (context) =>
+          HomeCubit(repository: context.read<HomeRepository>())..loadData(),
       child: Scaffold(
         body: CustomScrollView(
           slivers: [
@@ -46,10 +42,7 @@ class ConfraternityDetailPage extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [
-                        color.withAlpha(200),
-                        color,
-                      ],
+                      colors: [color.withAlpha(200), color],
                     ),
                   ),
                   child: Center(
@@ -90,12 +83,22 @@ class ConfraternityDetailPage extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Municipality
+                        // Municipality - clickable to weather
                         Card(
                           child: ListTile(
                             leading: const Icon(Icons.location_city),
                             title: const Text('Comune'),
                             subtitle: Text(confraternity.municipality),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () {
+                              Navigator.of(context).pushNamed(
+                                AppRoutes.weather,
+                                arguments: WeatherPageArgs(
+                                  initialMunicipality:
+                                      confraternity.municipality,
+                                ),
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(height: 16),
@@ -107,7 +110,7 @@ class ConfraternityDetailPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          confraternity.history ?? 
+                          confraternity.history ??
                               'La storia di questa confraternita sarà disponibile a breve.',
                           style: Theme.of(context).textTheme.bodyLarge,
                         ),
@@ -120,6 +123,11 @@ class ConfraternityDetailPage extends StatelessWidget {
                             onPressed: () {
                               Navigator.of(context).pushNamed(
                                 AppRoutes.tracking,
+                                arguments: TrackingPageArgs(
+                                  confraternityId: args.confraternityId,
+                                  confraternityName: args.confraternityName,
+                                  confraternityColor: args.confraternityColor,
+                                ),
                               );
                             },
                             icon: const Icon(Icons.map),

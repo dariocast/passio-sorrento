@@ -11,11 +11,17 @@ part 'tracking_state.dart';
 
 /// Cubit for managing live tracking state.
 class TrackingCubit extends Cubit<TrackingState> {
-  TrackingCubit({required TrackingRepository repository})
-      : _repository = repository,
-        super(const TrackingState());
+  TrackingCubit({
+    required TrackingRepository repository,
+    this.confraternityIdFilter,
+  }) : _repository = repository,
+       super(const TrackingState());
 
   final TrackingRepository _repository;
+
+  /// If set, only show tracking data for this confraternity.
+  final String? confraternityIdFilter;
+
   StreamSubscription<List<TrackingData>>? _trackingSubscription;
 
   /// Starts watching live tracking data.
@@ -25,16 +31,21 @@ class TrackingCubit extends Cubit<TrackingState> {
     _trackingSubscription?.cancel();
     _trackingSubscription = _repository.watchLiveTrackingData().listen(
       (data) {
-        emit(state.copyWith(
-          status: TrackingStatus.success,
-          trackingData: data,
-        ));
+        final filteredData = _applyFilter(data);
+        emit(
+          state.copyWith(
+            status: TrackingStatus.success,
+            trackingData: filteredData,
+          ),
+        );
       },
       onError: (Object error) {
-        emit(state.copyWith(
-          status: TrackingStatus.failure,
-          errorMessage: error.toString(),
-        ));
+        emit(
+          state.copyWith(
+            status: TrackingStatus.failure,
+            errorMessage: error.toString(),
+          ),
+        );
       },
     );
   }
@@ -45,16 +56,27 @@ class TrackingCubit extends Cubit<TrackingState> {
 
     try {
       final data = await _repository.getLiveTrackingData();
-      emit(state.copyWith(
-        status: TrackingStatus.success,
-        trackingData: data,
-      ));
+      final filteredData = _applyFilter(data);
+      emit(
+        state.copyWith(
+          status: TrackingStatus.success,
+          trackingData: filteredData,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: TrackingStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: TrackingStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
+  }
+
+  /// Applies the confraternity filter if set.
+  List<TrackingData> _applyFilter(List<TrackingData> data) {
+    if (confraternityIdFilter == null) return data;
+    return data.where((d) => d.processionId == confraternityIdFilter).toList();
   }
 
   /// Selects a procession to focus on the map.

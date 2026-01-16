@@ -8,18 +8,21 @@ import '../../../../core/constants/constants.dart';
 
 /// Remote data source for tracking data.
 class TrackingRemoteDataSource {
-  TrackingRemoteDataSource({http.Client? client}) : _client = client ?? http.Client();
+  TrackingRemoteDataSource({http.Client? client})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 
   /// Fetches live tracking data for all active processions.
   Future<List<Map<String, dynamic>>> getLiveTrackingData() async {
     final response = await _client.get(
-      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.processionsLive}'),
+      Uri.parse('${ApiConstants.baseUrl}${ApiConstants.trackingLive}'),
     );
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body) as List<dynamic>;
+      final Map<String, dynamic> body =
+          json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> data = body['data'] as List<dynamic>;
       return data.cast<Map<String, dynamic>>();
     } else {
       throw Exception('Failed to load tracking data');

@@ -38,23 +38,23 @@ class AppRouter {
         );
 
       case AppRoutes.weather:
+        final args = settings.arguments as WeatherPageArgs?;
         return MaterialPageRoute(
-          builder: (_) => const WeatherPage(),
+          builder: (_) => WeatherPage(args: args),
           settings: settings,
         );
 
       case AppRoutes.tracking:
+        final args = settings.arguments as TrackingPageArgs?;
         return MaterialPageRoute(
-          builder: (_) => const TrackingPage(),
+          builder: (_) => TrackingPage(args: args),
           settings: settings,
         );
 
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
-            body: Center(
-              child: Text('Route not found: ${settings.name}'),
-            ),
+            body: Center(child: Text('Route not found: ${settings.name}')),
           ),
         );
     }
@@ -72,4 +72,27 @@ class ConfraternityDetailArgs {
   final String confraternityId;
   final String confraternityName;
   final String confraternityColor;
+}
+
+/// Arguments for tracking page.
+class TrackingPageArgs {
+  const TrackingPageArgs({
+    this.confraternityId,
+    this.confraternityName,
+    this.confraternityColor,
+  });
+
+  /// If null, show all active processions.
+  /// If provided, filter to only this confraternity.
+  final String? confraternityId;
+  final String? confraternityName;
+  final String? confraternityColor;
+}
+
+/// Arguments for weather page.
+class WeatherPageArgs {
+  const WeatherPageArgs({this.initialMunicipality});
+
+  /// Municipality to show initially. If null, shows first tab.
+  final String? initialMunicipality;
 }

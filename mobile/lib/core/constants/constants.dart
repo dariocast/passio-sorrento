@@ -11,7 +11,7 @@ class ApiConstants {
   /// Endpoints.
   static const String confraternities = '/confraternities';
   static const String processionsLive = '/processions/live';
-  static const String trackingUpdate = '/tracking/update';
+  static const String trackingLive = '/tracking/live';
 }
 
 /// App-wide constants.
