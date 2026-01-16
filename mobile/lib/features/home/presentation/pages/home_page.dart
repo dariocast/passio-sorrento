@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/router/app_router.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../cubit/home_cubit.dart';
 
@@ -33,14 +34,14 @@ class _HomePageContent extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.cloud),
             onPressed: () {
-              // TODO: Navigate to weather page
+              Navigator.of(context).pushNamed(AppRoutes.weather);
             },
             tooltip: 'Meteo',
           ),
           IconButton(
             icon: const Icon(Icons.map),
             onPressed: () {
-              // TODO: Navigate to tracking page
+              Navigator.of(context).pushNamed(AppRoutes.tracking);
             },
             tooltip: 'Tracciamento Live',
           ),
@@ -144,7 +145,14 @@ class _HomePageContent extends StatelessWidget {
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: () {
-                            // TODO: Navigate to confraternity detail
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.confraternityDetail,
+                              arguments: ConfraternityDetailArgs(
+                                confraternityId: confraternity.id,
+                                confraternityName: confraternity.name,
+                                confraternityColor: confraternity.color,
+                              ),
+                            );
                           },
                         ),
                       ),

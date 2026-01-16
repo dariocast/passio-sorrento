@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
+import 'core/router/app_router.dart';
 import 'features/home/data/repositories/home_repository_http.dart';
 import 'features/home/domain/repositories/home_repository.dart';
 import 'features/tracking/data/datasources/tracking_remote_data_source.dart';
@@ -13,7 +14,7 @@ import 'features/tracking/domain/repositories/tracking_repository.dart';
 import 'features/weather/data/datasources/weather_remote_data_source.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
 import 'features/weather/domain/repositories/weather_repository.dart';
-import 'features/home/presentation/pages/home_page.dart';
+
 
 void main() {
   runApp(const HolyweekApp());
@@ -74,7 +75,8 @@ class HolyweekApp extends StatelessWidget {
           ),
         ),
         themeMode: ThemeMode.system,
-        home: const HomePage(),
+        initialRoute: AppRoutes.home,
+        onGenerateRoute: AppRouter.generateRoute,
       ),
     );
   }

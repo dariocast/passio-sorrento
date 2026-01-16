@@ -2,7 +2,7 @@
 library;
 
 import 'dart:convert';
-import 'dart:io' show Platform;
+import 'dart:io' show Platform, SocketException;
 
 import 'package:http/http.dart' as http;
 
