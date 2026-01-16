@@ -2,18 +2,46 @@
 
 The project uses **SQLite** for development and production simplicity.
 
-## Entity Relationship Diagram (Conceptual)
+## Entity Relationship Diagram
 
-```
-[Confraternity] 1 --- * [Procession] 1 --- 0/1 [Tracking]
-       |
-       +--- * [ProcessionLog]
+```mermaid
+erDiagram
+    Confraternity ||--o{ Procession : has
+    Confraternity ||--o{ TrackingLog : tracks
+    Procession ||--o{ TrackingLog : logs
+
+    Confraternity {
+        string id PK "UUID"
+        string name
+        string color "Hex color"
+        string municipality
+        string coat_of_arms
+        text history
+    }
+
+    Procession {
+        string id PK "UUID"
+        string confraternity_id FK
+        string day "Giovedì/Venerdì Santo"
+        datetime exit_time
+        datetime expected_return_time
+        boolean is_live
+    }
+
+    TrackingLog {
+        integer id PK "Auto-increment"
+        string confraternity_id FK
+        string procession_id FK "Optional"
+        float latitude
+        float longitude
+        datetime timestamp
+    }
 ```
 
 ## Tables
 
 ### 1. `confraternities`
-Stores static information about the religious brotherhoods.
+Static information about the religious brotherhoods.
 
 | Column | Type | Description |
 |--------|------|-------------|
@@ -34,28 +62,20 @@ Links a confraternity to a specific event in the Holy Week calendar.
 | `day` | String | "Giovedì Santo", "Venerdì Santo" etc. |
 | `exit_time` | DateTime | Scheduled start |
 | `expected_return_time`| DateTime | Scheduled end |
-| `is_live` | Boolean | Whether tracking is active |
+| `is_live` | Boolean | Whether the procession is currently active |
 
-### 3. `tracking`
-Stores the latest coordinates for an active procession.
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | Integer (PK) | Auto-increment ID |
-| `procession_id`| String (FK, Unique) | Reference to `processions.id` |
-| `latitude` | Float | GPS Latitude |
-| `longitude` | Float | GPS Longitude |
-| `timestamp` | DateTime | Creation time |
-| `last_update` | DateTime | Last update time |
-
-### 4. `procession_logs`
-Stores historical GPS position logs for procession tracking (capofila device).
+### 3. `tracking_logs`
+Unified GPS position logs for all processions (historical and live).
 
 | Column | Type | Description |
 |--------|------|-------------|
 | `id` | Integer (PK) | Auto-increment ID |
 | `confraternity_id`| String (FK) | Reference to `confraternities.id` |
+| `procession_id`| String (FK, nullable) | Optional reference to `processions.id` |
 | `latitude` | Float | GPS Latitude |
 | `longitude` | Float | GPS Longitude |
 | `timestamp` | DateTime | Time of position log (ISO 8601) |
 
+**Index**: `(confraternity_id, timestamp DESC)` for efficient "latest position" queries.
+
+> **Note**: The old `tracking` table has been removed. All tracking is now unified in `tracking_logs`.

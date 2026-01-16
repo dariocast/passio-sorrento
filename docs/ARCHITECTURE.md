@@ -2,51 +2,125 @@
 
 ## Overview
 
-The Sorrento Holy Week Tracker (Incappucciati) follows a **Monorepo** structure, separating the mobile client and the backend server.
+The Sorrento Holy Week Tracker (Incappucciati) follows a **Monorepo** structure with two main components:
+
+```
+incappucciati/
+├── mobile/    # Flutter mobile application
+├── server/    # Python Flask backend
+└── docs/      # Documentation
+```
+
+---
 
 ## Mobile Architecture (Flutter)
 
-The mobile application is built using **Clean Architecture** (also known as Onion Architecture). This ensures that core business logic is isolated from external concerns like UI, frameworks, and APIs.
+The mobile application follows **Clean Architecture** ("Onion Architecture") ensuring business logic isolation.
+
+### Layer Diagram
+
+```
+┌─────────────────────────────────────────┐
+│         Presentation Layer              │
+│   (Pages, Widgets, Cubits, BLoC)       │
+├─────────────────────────────────────────┤
+│           Domain Layer                  │
+│   (Entities, Repositories Interfaces)  │
+├─────────────────────────────────────────┤
+│            Data Layer                   │
+│   (Implementations, Data Sources)      │
+└─────────────────────────────────────────┘
+```
 
 ### Layers
 
-#### 1. Domain Layer (Deepest)
-- **Entities**: Pure Dart classes representing business objects (e.g., `Confraternity`, `Procession`).
-- **Repositories (Interfaces)**: Abstract definitions of data operations.
-- **Use Cases**: Specific business logic units (e.g., `GetLiveLocation`).
+#### 1. Domain Layer (Core)
+- **Entities**: Pure Dart classes (`Confraternity`, `TrackingData`, `Weather`)
+- **Repositories (Interfaces)**: Abstract definitions of data operations
 
 #### 2. Data Layer
-- **Repositories (Implementations)**: Concrete implementations of the Domain repositories. They coordinate data from various sources.
-- **Data Sources**: Low-level classes that talk to APIs (Remote) or Local Databases.
+- **Repositories (Implementations)**: Concrete implementations with caching, HTTP, platform detection
+- **Data Sources**: Remote (HTTP) and Local (SharedPreferences) sources
 
-#### 3. Presentation Layer (Shallowest)
-- **State Management**: Uses `flutter_bloc` (specifically Cubits).
-- **Pages**: Full-screen widgets.
-- **Widgets**: Reusable components.
+#### 3. Presentation Layer
+- **State Management**: `flutter_bloc` (Cubits)
+- **Pages**: Full-screen widgets (`HomePage`, `TrackingPage`, `WeatherPage`, `ConfraternityDetailPage`)
+- **Navigation**: Centralized `AppRouter` with typed arguments
 
-### Dependency Injection (DI)
-We use **Manual Dependency Injection** via the `RepositoryProvider` and `BlocProvider` from the `flutter_bloc` package. 
-- Repositories are injected at the top level in `main.dart`.
-- Cubits are injected at the page level.
+### Dependency Injection
+
+Manual DI via `RepositoryProvider` and `BlocProvider`:
+- Repositories injected at app level in `main.dart`
+- Cubits injected at page level with scoped lifecycle
+
+### Key Features
+
+| Feature | Components |
+|---------|------------|
+| **Home** | `HomeCubit`, `HomeRepository`, local caching |
+| **Tracking** | `TrackingCubit`, `MapController`, auto-zoom, colored markers |
+| **Weather** | `WeatherCubit`, `TabController`, municipality tabs |
+| **Navigation** | `AppRouter`, typed `Args` classes |
 
 ---
 
 ## Backend Architecture (Flask)
 
-The backend is a lightweight REST API built with Flask.
+Lightweight REST API with Swagger documentation.
 
 ### Components
-- **App Factory**: `create_app()` initializes the Flask instance and extensions.
-- **Blueprints**: Used to group related routes (e.g., `/api`).
-- **Models**: SQLAlchemy ORM classes for database abstraction.
-- **Routes**: Handle HTTP requests and implement business logic.
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| App Factory | `app/__init__.py` | Flask + SQLAlchemy + Flasgger setup |
+| Models | `app/models.py` | `Confraternity`, `Procession`, `TrackingLog` |
+| Routes | `app/routes.py` | API endpoints with OpenAPI docstrings |
+| Entry Point | `run.py` | Development server |
+| Seed Data | `seed.py` | Populate database with 8 confraternities |
+
+### API Documentation
+
+- **Swagger UI**: `http://localhost:5000/docs`
+- **OpenAPI JSON**: `http://localhost:5000/apispec.json`
 
 ---
 
-## Data Flow (Example: Tracking)
+## Data Flow (Tracking Example)
 
-1. **UI**: `MapWidget` triggers `TrackingCubit`.
-2. **Cubit**: Calls `TrackingRepository.watchLiveTrackingData()`.
-3. **Repository**: Initiates a polling timer.
-4. **Data Source**: Every 10 seconds, makes an HTTP GET request to `/api/processions/live`.
-5. **Flowback**: Data moves from Source -> Repository -> Cubit -> UI (State Update).
+```mermaid
+sequenceDiagram
+    participant UI as TrackingPage
+    participant Cubit as TrackingCubit
+    participant Repo as TrackingRepository
+    participant API as Flask /tracking/live
+
+    UI->>Cubit: startWatching()
+    loop Every 10 seconds
+        Cubit->>Repo: getLiveTrackingData()
+        Repo->>API: GET /api/tracking/live
+        API-->>Repo: JSON (positions + colors)
+        Repo-->>Cubit: List<TrackingData>
+        Cubit-->>UI: State update (markers)
+    end
+```
+
+---
+
+## Technology Stack
+
+### Mobile
+| Concern | Technology |
+|---------|------------|
+| Framework | Flutter 3.x |
+| State | flutter_bloc |
+| HTTP | http package |
+| Maps | flutter_map (OSM) |
+| Caching | shared_preferences |
+
+### Backend
+| Concern | Technology |
+|---------|------------|
+| Framework | Flask |
+| ORM | SQLAlchemy |
+| Database | SQLite |
+| API Docs | Flasgger (OpenAPI 3.0) |

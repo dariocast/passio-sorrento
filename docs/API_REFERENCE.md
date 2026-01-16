@@ -2,30 +2,40 @@
 
 The backend API is served at `http://localhost:5000/api`.
 
+**Swagger UI**: `http://localhost:5000/docs`  
+**OpenAPI JSON**: `http://localhost:5000/apispec.json`
+
 ## Authentication
 
-Write operations (POST/PUT/DELETE) require an API Key passed in the headers.
+Write operations require authentication:
 
-- **Header Name**: `X-API-Key`
-- **Default Key (Dev)**: `dev-api-key`
+| Method | Header / Field | Value |
+|--------|----------------|-------|
+| API Key | `X-API-Key` header | `dev-api-key` |
+| Capofila Secret | `secret` in body | `capofila123` |
+
+---
 
 ## Endpoints
 
-### 1. Health Check
+### Health Check
 `GET /health`
-- **Purpose**: Verify the server is running.
-- **Response**: `200 OK`
+
+Returns server status.
+
+**Response** `200 OK`:
 ```json
-{
-  "status": "healthy",
-  "timestamp": "2026-01-12T22:00:00Z"
-}
+{"status": "healthy", "timestamp": "2026-01-17T00:00:00Z"}
 ```
 
-### 2. List Confraternities
+---
+
+### Confraternities
+
+#### List All
 `GET /confraternities`
-- **Purpose**: Get all static info about confraternities.
-- **Response**: `200 OK`
+
+**Response** `200 OK`:
 ```json
 [
   {
@@ -33,66 +43,74 @@ Write operations (POST/PUT/DELETE) require an API Key passed in the headers.
     "name": "Arciconfraternita della Morte",
     "color": "#000000",
     "municipality": "Sorrento",
-    "coat_of_arms": "url/to/image.png",
-    "history": "Fondato nel..."
+    "coat_of_arms": "/assets/stemmi/morte.png",
+    "history": "Fondata nel 1606..."
   }
 ]
 ```
 
-### 3. Get Live Tracking
-`GET /processions/live`
-- **Purpose**: Retrieve the real-time position of all active processions.
-- **Response**: `200 OK`
+#### Get by ID
+`GET /confraternities/<id>`
+
+**Response** `200 OK`: Single confraternity object  
+**Response** `404 Not Found`: `{"error": "Confraternity not found"}`
+
+---
+
+### Processions
+
+#### List All
+`GET /processions`
+
+Returns all processions with confraternity info.
+
+**Response** `200 OK`:
 ```json
 [
   {
-    "procession_id": "proc-1",
-    "latitude": 40.6263,
-    "longitude": 14.3758,
-    "timestamp": "iso-time",
-    "last_update": "iso-time",
+    "id": "proc-1",
     "confraternity_id": "uuid-1",
-    "day": "Venerdì Santo"
+    "confraternity_name": "Arciconfraternita della Morte",
+    "confraternity_color": "#000000",
+    "municipality": "Sorrento",
+    "day": "Venerdì Santo",
+    "exit_time": "2026-04-18T18:00:00",
+    "expected_return_time": "2026-04-19T02:00:00",
+    "is_live": false
   }
 ]
 ```
 
-### 4. Update Tracking Position
-`POST /tracking/update`
-- **Auth**: Required (API Key)
-- **Body**:
-```json
-{
-  "procession_id": "proc-1",
-  "latitude": 40.6263,
-  "longitude": 14.3758
-}
-```
-- **Response**: `200 OK` returns the updated tracking object.
+#### Live Processions
+`GET /processions/live`
 
-### 5. Stop Tracking
-`POST /tracking/stop/<procession_id>`
-- **Auth**: Required (API Key)
-- **Purpose**: Stop the live status of a procession.
-- **Response**: `200 OK`
+Returns only active processions with latest tracking positions.
+
+**Response** `200 OK`:
 ```json
-{
-  "message": "Tracking stopped",
-  "procession_id": "proc-1"
-}
+[
+  {
+    "confraternity_id": "uuid-1",
+    "day": "Venerdì Santo",
+    "lat": 40.6263,
+    "lng": 14.3758,
+    "last_updated": "2026-01-17T00:00:00Z"
+  }
+]
 ```
 
 ---
 
-## ProcessionLog Tracking (Capofila Device)
+### Tracking (TrackingLog)
 
-These simplified endpoints are designed for the "capofila" device that leads each procession.
-
-### 6. Log Tracking Position
+#### Log Position
 `POST /tracking/log`
-- **Auth**: Capofila Secret (`secret` field in body)
-- **Purpose**: Log a new GPS position for a confraternity's procession.
-- **Body**:
+
+Log a GPS position from the capofila device.
+
+**Auth**: Requires `secret` in body.
+
+**Request Body**:
 ```json
 {
   "confraternity_id": "uuid-1",
@@ -101,7 +119,8 @@ These simplified endpoints are designed for the "capofila" device that leads eac
   "secret": "capofila123"
 }
 ```
-- **Response**: `200 OK`
+
+**Response** `200 OK`:
 ```json
 {
   "data": {
@@ -109,34 +128,45 @@ These simplified endpoints are designed for the "capofila" device that leads eac
     "confraternity_id": "uuid-1",
     "lat": 40.6263,
     "lng": 14.3758,
-    "last_updated": "2026-01-12T22:00:00Z"
+    "last_updated": "2026-01-17T00:00:00Z"
   },
   "error": null
 }
 ```
-- **Error Response**: `401 Unauthorized`
+
+**Response** `401 Unauthorized`:
 ```json
-{
-  "data": null,
-  "error": "Unauthorized - invalid secret"
-}
+{"data": null, "error": "Unauthorized - invalid secret"}
 ```
 
-### 7. Get Live Tracking (ProcessionLog)
+#### Get Live Positions
 `GET /tracking/live`
-- **Purpose**: Retrieve the latest position log for each active confraternity.
-- **Response**: `200 OK`
+
+Returns the latest position for each confraternity.
+
+**Response** `200 OK`:
 ```json
 {
   "data": [
     {
       "id": 1,
       "confraternity_id": "uuid-1",
+      "confraternity_name": "Arciconfraternita della Morte",
+      "confraternity_color": "#000000",
       "lat": 40.6263,
       "lng": 14.3758,
-      "last_updated": "2026-01-12T22:00:00Z"
+      "last_updated": "2026-01-17T00:00:00Z"
     }
   ],
   "error": null
 }
 ```
+
+---
+
+## Removed Endpoints
+
+The following endpoints were removed during the TrackingLog refactoring:
+
+- ~~`POST /tracking/update`~~ → Use `/tracking/log` instead
+- ~~`POST /tracking/stop/<id>`~~ → No longer needed
