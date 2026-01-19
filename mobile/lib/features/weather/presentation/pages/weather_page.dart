@@ -1,6 +1,7 @@
 /// Weather page widget.
 library;
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/components/components.dart';
@@ -24,6 +25,7 @@ class WeatherPage extends StatefulWidget {
 class _WeatherPageState extends State<WeatherPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
+  late final PageController _pageController;
 
   @override
   void initState() {
@@ -36,11 +38,15 @@ class _WeatherPageState extends State<WeatherPage>
       vsync: this,
       initialIndex: initialIndex >= 0 ? initialIndex : 0,
     );
+    _pageController = PageController(
+      initialPage: initialIndex >= 0 ? initialIndex : 0,
+    );
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _pageController.dispose();
     super.dispose();
   }
 
@@ -53,15 +59,22 @@ class _WeatherPageState extends State<WeatherPage>
               widget.args?.initialMunicipality ??
                   AppConstants.municipalities.first,
             ),
-      child: _WeatherPageContent(tabController: _tabController),
+      child: _WeatherPageContent(
+        tabController: _tabController,
+        pageController: _pageController,
+      ),
     );
   }
 }
 
 class _WeatherPageContent extends StatelessWidget {
-  const _WeatherPageContent({required this.tabController});
+  const _WeatherPageContent({
+    required this.tabController,
+    required this.pageController,
+  });
 
   final TabController tabController;
+  final PageController pageController;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +120,11 @@ class _WeatherPageContent extends StatelessWidget {
                     );
                   }).toList(),
                   onTap: (index) {
+                    pageController.animateToPage(
+                      index,
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
                     context.read<WeatherCubit>().selectMunicipality(
                       AppConstants.municipalities[index],
                     );
@@ -144,7 +162,20 @@ class _WeatherPageContent extends StatelessWidget {
                   );
                 }
 
-                return _buildWeatherContent(context, state, weather);
+                // Swipeable PageView for municipalities
+                return PageView.builder(
+                  controller: pageController,
+                  onPageChanged: (index) {
+                    tabController.animateTo(index);
+                    context.read<WeatherCubit>().selectMunicipality(
+                      AppConstants.municipalities[index],
+                    );
+                  },
+                  itemCount: AppConstants.municipalities.length,
+                  itemBuilder: (context, index) {
+                    return _buildWeatherContent(context, state, weather);
+                  },
+                );
             }
           },
         ),
@@ -162,6 +193,9 @@ class _WeatherPageContent extends StatelessWidget {
       weather.municipality,
     );
 
+    // Calculate procession score
+    final processionScore = _calculateProcessionScore(weather);
+
     return RefreshIndicator(
       onRefresh: () =>
           context.read<WeatherCubit>().loadWeather(weather.municipality),
@@ -178,13 +212,40 @@ class _WeatherPageContent extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Precipitation probability card
-            _PrecipitationCard(weather: weather),
+            // Procession-friendly score
+            _ProcessionScoreCard(score: processionScore, weather: weather),
+            const SizedBox(height: AppSpacing.md),
+
+            // Weather warnings if any
+            if (_hasWeatherWarnings(weather))
+              _WeatherWarningsCard(weather: weather),
+            if (_hasWeatherWarnings(weather))
+              const SizedBox(height: AppSpacing.md),
+
+            // Best time recommendation
+            _BestTimeCard(forecast: state.forecast),
             const SizedBox(height: AppSpacing.lg),
 
             // Weather metrics grid
             _WeatherMetricsGrid(weather: weather),
             const SizedBox(height: AppSpacing.lg),
+
+            // Wind visualization
+            _WindVisualization(weather: weather),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Precipitation probability chart
+            if (state.forecast.isNotEmpty) ...[
+              Text(
+                'Probabilità Pioggia',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _PrecipitationChart(forecast: state.forecast.take(12).toList()),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
             // Forecast section
             if (state.forecast.isNotEmpty) ...[
@@ -221,16 +282,43 @@ class _WeatherPageContent extends StatelessWidget {
                   .map((f) => _DailyForecastTile(forecast: f)),
             ],
 
-            const SizedBox(height: AppSpacing.xxl),
+            const SizedBox(height: AppSpacing.xxl + kBottomNavigationBarHeight),
           ],
         ),
       ),
     );
   }
+
+  /// Calculate a score (0-100) for how good the weather is for processions.
+  int _calculateProcessionScore(dynamic weather) {
+    int score = 100;
+
+    // Deduct for rain probability
+    final rainProbability = weather.precipitationProbability as int;
+    score -= (rainProbability * 0.5).round();
+
+    // Deduct for extreme temperatures
+    final temp = weather.temperature as double;
+    if (temp < 10) score -= ((10 - temp) * 3).round();
+    if (temp > 30) score -= ((temp - 30) * 3).round();
+
+    // Deduct for high wind
+    final wind = weather.windSpeed as double;
+    if (wind > 5) score -= ((wind - 5) * 5).round();
+
+    return score.clamp(0, 100);
+  }
+
+  bool _hasWeatherWarnings(dynamic weather) {
+    return weather.precipitationProbability > 60 ||
+        weather.windSpeed > 10 ||
+        weather.temperature < 5 ||
+        weather.temperature > 35;
+  }
 }
 
-/// Current weather display card.
-class _CurrentWeatherCard extends StatelessWidget {
+/// Current weather display card with animated icon.
+class _CurrentWeatherCard extends StatefulWidget {
   const _CurrentWeatherCard({
     required this.weather,
     required this.municipalityColor,
@@ -240,20 +328,59 @@ class _CurrentWeatherCard extends StatelessWidget {
   final Color municipalityColor;
 
   @override
+  State<_CurrentWeatherCard> createState() => _CurrentWeatherCardState();
+}
+
+class _CurrentWeatherCardState extends State<_CurrentWeatherCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+  late final Animation<double> _scaleAnimation;
+  late final Animation<double> _rotateAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _rotateAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    // Determine if temperature is trending up or down (mock - would need historical data)
+    final tempTrend = widget.weather.temperature > 20 ? 1 : -1;
 
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [municipalityColor, municipalityColor.withAlpha(180)],
+          colors: [
+            widget.municipalityColor,
+            widget.municipalityColor.withAlpha(180),
+          ],
         ),
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
-            color: municipalityColor.withAlpha(80),
+            color: widget.municipalityColor.withAlpha(80),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -264,31 +391,55 @@ class _CurrentWeatherCard extends StatelessWidget {
         children: [
           // Municipality name
           Text(
-            weather.municipality,
+            widget.weather.municipality,
             style: theme.textTheme.titleMedium?.copyWith(
               color: Colors.white.withAlpha(200),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
 
-          // Temperature and icon
+          // Temperature and animated icon
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(_weatherIcon(weather.icon), size: 72, color: Colors.white),
+              // Animated weather icon
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Transform.rotate(
+                    angle: _rotateAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Icon(
+                        _weatherIcon(widget.weather.icon),
+                        size: 72,
+                        color: Colors.white,
+                      ),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(width: AppSpacing.lg),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '${weather.temperature.round()}°',
-                    style: theme.textTheme.displayLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w200,
-                    ),
+                  // Temperature with trend
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${widget.weather.temperature.round()}°',
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w200,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      _TrendIndicator(trend: tempTrend),
+                    ],
                   ),
                   Text(
-                    weather.description,
+                    widget.weather.description,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: Colors.white.withAlpha(220),
                     ),
@@ -318,29 +469,567 @@ class _CurrentWeatherCard extends StatelessWidget {
   }
 }
 
-/// Precipitation probability card.
-class _PrecipitationCard extends StatelessWidget {
-  const _PrecipitationCard({required this.weather});
+/// Temperature trend indicator arrow.
+class _TrendIndicator extends StatelessWidget {
+  const _TrendIndicator({required this.trend});
+
+  final int trend; // 1 = up, -1 = down, 0 = stable
+
+  @override
+  Widget build(BuildContext context) {
+    if (trend == 0) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(50),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Icon(
+        trend > 0 ? Icons.arrow_upward_rounded : Icons.arrow_downward_rounded,
+        size: 16,
+        color: Colors.white,
+      ),
+    );
+  }
+}
+
+/// Procession-friendly score card.
+class _ProcessionScoreCard extends StatelessWidget {
+  const _ProcessionScoreCard({required this.score, required this.weather});
+
+  final int score;
+  final dynamic weather;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    Color scoreColor;
+    String scoreLabel;
+    IconData scoreIcon;
+
+    if (score >= 80) {
+      scoreColor = AppColors.success;
+      scoreLabel = 'Ottimo per processioni';
+      scoreIcon = Icons.check_circle_rounded;
+    } else if (score >= 60) {
+      scoreColor = AppColors.warning;
+      scoreLabel = 'Buone condizioni';
+      scoreIcon = Icons.info_rounded;
+    } else if (score >= 40) {
+      scoreColor = Colors.orange;
+      scoreLabel = 'Condizioni discrete';
+      scoreIcon = Icons.warning_rounded;
+    } else {
+      scoreColor = AppColors.error;
+      scoreLabel = 'Condizioni avverse';
+      scoreIcon = Icons.dangerous_rounded;
+    }
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          // Score circle
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: scoreColor, width: 4),
+              color: scoreColor.withAlpha(30),
+            ),
+            child: Center(
+              child: Text(
+                '$score',
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: scoreColor,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(scoreIcon, size: 20, color: scoreColor),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Meteo Processioni',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  scoreLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: scoreColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Weather warnings card.
+class _WeatherWarningsCard extends StatelessWidget {
+  const _WeatherWarningsCard({required this.weather});
 
   final dynamic weather;
 
   @override
   Widget build(BuildContext context) {
-    final isHighProbability = weather.precipitationProbability > 50;
+    final theme = Theme.of(context);
+    final warnings = <_WarningItem>[];
+
+    if (weather.precipitationProbability > 60) {
+      warnings.add(
+        _WarningItem(
+          icon: Icons.water_drop_rounded,
+          label:
+              'Alta probabilità pioggia (${weather.precipitationProbability}%)',
+          severity: weather.precipitationProbability > 80 ? 2 : 1,
+        ),
+      );
+    }
+
+    if (weather.windSpeed > 10) {
+      warnings.add(
+        _WarningItem(
+          icon: Icons.air_rounded,
+          label: 'Vento forte (${weather.windSpeed.round()} m/s)',
+          severity: weather.windSpeed > 15 ? 2 : 1,
+        ),
+      );
+    }
+
+    if (weather.temperature < 5) {
+      warnings.add(
+        _WarningItem(
+          icon: Icons.ac_unit_rounded,
+          label: 'Temperatura bassa (${weather.temperature.round()}°C)',
+          severity: weather.temperature < 0 ? 2 : 1,
+        ),
+      );
+    }
+
+    if (weather.temperature > 35) {
+      warnings.add(
+        _WarningItem(
+          icon: Icons.local_fire_department_rounded,
+          label: 'Temperatura elevata (${weather.temperature.round()}°C)',
+          severity: weather.temperature > 38 ? 2 : 1,
+        ),
+      );
+    }
+
+    if (warnings.isEmpty) return const SizedBox.shrink();
 
     return StatusCard(
-      icon: Icons.water_drop_rounded,
-      title: 'Probabilità Pioggia',
-      subtitle: isHighProbability
-          ? 'Alta probabilità di pioggia'
-          : 'Bassa probabilità di pioggia',
-      status: isHighProbability ? CardStatus.warning : CardStatus.success,
-      action: Text(
-        '${weather.precipitationProbability}%',
-        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: isHighProbability ? AppColors.warning : AppColors.success,
+      icon: Icons.warning_amber_rounded,
+      title: 'Avvisi Meteo',
+      subtitle:
+          '${warnings.length} avvis${warnings.length == 1 ? 'o' : 'i'} attiv${warnings.length == 1 ? 'o' : 'i'}',
+      status: CardStatus.warning,
+      action: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: warnings
+            .map(
+              (w) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      w.icon,
+                      size: 16,
+                      color: w.severity > 1
+                          ? AppColors.error
+                          : AppColors.warning,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(w.label, style: theme.textTheme.bodySmall),
+                    ),
+                  ],
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+}
+
+class _WarningItem {
+  const _WarningItem({
+    required this.icon,
+    required this.label,
+    required this.severity,
+  });
+
+  final IconData icon;
+  final String label;
+  final int severity; // 1 = warning, 2 = critical
+}
+
+/// Best time for procession recommendation.
+class _BestTimeCard extends StatelessWidget {
+  const _BestTimeCard({required this.forecast});
+
+  final List<dynamic> forecast;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Find the best time slot (lowest precipitation + good temp)
+    if (forecast.isEmpty) return const SizedBox.shrink();
+
+    dynamic bestSlot = forecast.first;
+    int bestScore = _getSlotScore(forecast.first);
+
+    for (final slot in forecast.take(12)) {
+      final score = _getSlotScore(slot);
+      if (score > bestScore) {
+        bestScore = score;
+        bestSlot = slot;
+      }
+    }
+
+    final bestHour = bestSlot.timestamp as DateTime;
+    final timeString = '${bestHour.hour.toString().padLeft(2, '0')}:00';
+    final isToday = bestHour.day == DateTime.now().day;
+
+    return AppCard(
+      accentColor: AppColors.success,
+      accentPosition: AccentPosition.left,
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.success.withAlpha(30),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: const Icon(Icons.schedule_rounded, color: AppColors.success),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Orario consigliato',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${isToday ? 'Oggi' : 'Domani'} alle $timeString',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.success,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                '${bestSlot.temperature.round()}°',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Row(
+                children: [
+                  const Icon(Icons.water_drop, size: 12, color: Colors.blue),
+                  const SizedBox(width: 2),
+                  Text(
+                    '${bestSlot.precipitationProbability}%',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _getSlotScore(dynamic slot) {
+    int score = 100;
+    score -= slot.precipitationProbability as int;
+
+    final temp = slot.temperature as double;
+    if (temp < 15 || temp > 28) score -= 10;
+
+    return score;
+  }
+}
+
+/// Wind direction and speed visualization.
+class _WindVisualization extends StatelessWidget {
+  const _WindVisualization({required this.weather});
+
+  final dynamic weather;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final windSpeed = weather.windSpeed as double;
+    final windDeg = (weather.windDeg ?? 0) as int;
+
+    String windDirection;
+    if (windDeg >= 337.5 || windDeg < 22.5) {
+      windDirection = 'N';
+    } else if (windDeg < 67.5) {
+      windDirection = 'NE';
+    } else if (windDeg < 112.5) {
+      windDirection = 'E';
+    } else if (windDeg < 157.5) {
+      windDirection = 'SE';
+    } else if (windDeg < 202.5) {
+      windDirection = 'S';
+    } else if (windDeg < 247.5) {
+      windDirection = 'SW';
+    } else if (windDeg < 292.5) {
+      windDirection = 'W';
+    } else {
+      windDirection = 'NW';
+    }
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          // Compass visualization
+          SizedBox(
+            width: 60,
+            height: 60,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Compass circle
+                Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: theme.colorScheme.primary.withAlpha(50),
+                      width: 2,
+                    ),
+                  ),
+                ),
+                // Direction arrow
+                Transform.rotate(
+                  angle: windDeg * (math.pi / 180),
+                  child: Icon(
+                    Icons.navigation_rounded,
+                    size: 32,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Vento',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    Text(
+                      '${windSpeed.round()} m/s',
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
+                      ),
+                      child: Text(
+                        windDirection,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: theme.colorScheme.onPrimaryContainer,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Wind strength indicator
+          _WindStrengthIndicator(speed: windSpeed),
+        ],
+      ),
+    );
+  }
+}
+
+/// Wind strength visual indicator.
+class _WindStrengthIndicator extends StatelessWidget {
+  const _WindStrengthIndicator({required this.speed});
+
+  final double speed;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final level = _getWindLevel(speed);
+
+    return Column(
+      children: [
+        Text(
+          level.label,
+          style: theme.textTheme.labelSmall?.copyWith(color: level.color),
         ),
+        const SizedBox(height: 4),
+        Row(
+          children: List.generate(4, (index) {
+            return Container(
+              width: 6,
+              height: 12 + (index * 4).toDouble(),
+              margin: const EdgeInsets.symmetric(horizontal: 1),
+              decoration: BoxDecoration(
+                color: index < level.bars
+                    ? level.color
+                    : theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  _WindLevel _getWindLevel(double speed) {
+    if (speed < 3) {
+      return const _WindLevel('Calmo', 1, AppColors.success);
+    } else if (speed < 6) {
+      return const _WindLevel('Leggero', 2, AppColors.success);
+    } else if (speed < 10) {
+      return const _WindLevel('Moderato', 3, AppColors.warning);
+    } else {
+      return const _WindLevel('Forte', 4, AppColors.error);
+    }
+  }
+}
+
+class _WindLevel {
+  const _WindLevel(this.label, this.bars, this.color);
+
+  final String label;
+  final int bars;
+  final Color color;
+}
+
+/// Precipitation probability chart.
+class _PrecipitationChart extends StatelessWidget {
+  const _PrecipitationChart({required this.forecast});
+
+  final List<dynamic> forecast;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AppCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        children: [
+          // Chart
+          SizedBox(
+            height: 100,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: forecast.map((f) {
+                final prob = f.precipitationProbability as int;
+                final height = (prob / 100) * 80;
+                return Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          '$prob%',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 8,
+                            color: prob > 50
+                                ? AppColors.warning
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Container(
+                          height: height.clamp(4, 80),
+                          decoration: BoxDecoration(
+                            color: prob > 50
+                                ? AppColors.warning.withAlpha(200)
+                                : theme.colorScheme.primary.withAlpha(150),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Hour labels
+          Row(
+            children: forecast.map((f) {
+              final hour = (f.timestamp as DateTime).hour;
+              return Expanded(
+                child: Text(
+                  '$hour',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
