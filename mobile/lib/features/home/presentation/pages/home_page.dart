@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/components/components.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/color_utils.dart';
+import '../../domain/entities/confraternity.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../cubit/home_cubit.dart';
 
@@ -50,7 +52,6 @@ class _HomePageContent extends StatelessWidget {
               centerTitle: true,
               titlePadding: const EdgeInsets.only(bottom: 16),
             ),
-            // No more navigation actions - we have bottom nav now
           ),
         ],
         body: BlocBuilder<HomeCubit, HomeState>(
@@ -99,6 +100,10 @@ class _HomePageContent extends StatelessWidget {
     // Check if there are any live processions
     final hasLiveProcessions = state.liveProcessions.isNotEmpty;
 
+    // Group confraternities by municipality
+    final groupedByMunicipality = _groupByMunicipality(state.confraternities);
+    final municipalities = groupedByMunicipality.keys.toList()..sort();
+
     return RefreshIndicator(
       onRefresh: () => context.read<HomeCubit>().refresh(),
       color: theme.colorScheme.primary,
@@ -146,6 +151,7 @@ class _HomePageContent extends StatelessWidget {
                     if (confraternity == null) return const SizedBox.shrink();
 
                     return _LiveProcessionCard(
+                      confraternityId: confraternity.id,
                       name: confraternity.name,
                       municipality: confraternity.municipality,
                       color: confraternity.color,
@@ -168,56 +174,374 @@ class _HomePageContent extends StatelessWidget {
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
           ],
 
-          // All Confraternities Section Header
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.sm,
+          // Grouped Confraternities by Municipality
+          for (final municipality in municipalities) ...[
+            // Section Header
+            SliverToBoxAdapter(
+              child: MunicipalitySection(
+                municipality: municipality,
+                count: groupedByMunicipality[municipality]!.length,
               ),
-              child: Text(
-                'Tutte le Confraternite',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+            ),
+
+            // Confraternities in this municipality
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final confraternity =
+                      groupedByMunicipality[municipality]![index];
+                  final isLive = state.liveProcessions.any(
+                    (p) => p.confraternityId == confraternity.id,
+                  );
+
+                  return _SwipeableConfraternityItem(
+                    confraternity: confraternity,
+                    isLive: isLive,
+                    state: state,
+                  );
+                }, childCount: groupedByMunicipality[municipality]!.length),
+              ),
+            ),
+          ],
+
+          // Bottom padding for navigation bar
+          const SliverToBoxAdapter(
+            child: SizedBox(
+              height: AppSpacing.xxl + kBottomNavigationBarHeight,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Groups confraternities by municipality.
+  Map<String, List<Confraternity>> _groupByMunicipality(
+    List<Confraternity> confraternities,
+  ) {
+    final Map<String, List<Confraternity>> grouped = {};
+    for (final confraternity in confraternities) {
+      grouped.putIfAbsent(confraternity.municipality, () => []);
+      grouped[confraternity.municipality]!.add(confraternity);
+    }
+    return grouped;
+  }
+}
+
+/// Swipeable confraternity item with Hero animation.
+class _SwipeableConfraternityItem extends StatelessWidget {
+  const _SwipeableConfraternityItem({
+    required this.confraternity,
+    required this.isLive,
+    required this.state,
+  });
+
+  final Confraternity confraternity;
+  final bool isLive;
+  final HomeState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Dismissible(
+      key: Key('confraternity_${confraternity.id}'),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (direction) async {
+        // Show info dialog instead of dismissing
+        _showInfoDialog(context);
+        return false; // Don't dismiss
+      },
+      background: Container(
+        margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.primaryContainer,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: AppSpacing.lg),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.info_outline_rounded,
+              color: theme.colorScheme.onPrimaryContainer,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Info',
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ],
+        ),
+      ),
+      child: _HeroConfraternityItem(
+        confraternity: confraternity,
+        isLive: isLive,
+      ),
+    );
+  }
+
+  void _showInfoDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final confraternityColor = ColorUtils.parseHex(confraternity.color);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.lg),
+          ),
+        ),
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.onSurfaceVariant.withAlpha(100),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Icon
+            Hero(
+              tag: 'confraternity_icon_${confraternity.id}',
+              child: Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: confraternityColor.withAlpha(30),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: confraternityColor.withAlpha(100),
+                    width: 2,
+                  ),
+                ),
+                child: Icon(
+                  Icons.church_rounded,
+                  color: confraternityColor,
+                  size: 32,
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: AppSpacing.md),
 
-          // Confraternity List
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final confraternity = state.confraternities[index];
-                final isLive = state.liveProcessions.any(
-                  (p) => p.confraternityId == confraternity.id,
-                );
-
-                return ConfraternityListItem(
-                  name: confraternity.name,
-                  municipality: confraternity.municipality,
-                  color: confraternity.color,
-                  isLive: isLive,
-                  onTap: () {
-                    context.goToConfraternity(
-                      ConfraternityDetailArgs(
-                        confraternityId: confraternity.id,
-                        confraternityName: confraternity.name,
-                        confraternityColor: confraternity.color,
-                      ),
-                    );
-                  },
-                );
-              }, childCount: state.confraternities.length),
+            // Name
+            Text(
+              confraternity.name,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-          ),
+            const SizedBox(height: AppSpacing.xs),
 
-          // Bottom padding
-          const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
-        ],
+            // Municipality
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.location_on_outlined,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  confraternity.municipality,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xl),
+
+            // Actions
+            Row(
+              children: [
+                Expanded(
+                  child: SecondaryButton(
+                    label: 'Mappa',
+                    icon: Icons.map_outlined,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.go(
+                        AppRoutes.tracking,
+                        extra: TrackingPageArgs(
+                          confraternityId: confraternity.id,
+                          confraternityName: confraternity.name,
+                          confraternityColor: confraternity.color,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: PrimaryButton(
+                    label: 'Dettagli',
+                    icon: Icons.arrow_forward_rounded,
+                    onPressed: () {
+                      Navigator.pop(context);
+                      context.goToConfraternity(
+                        ConfraternityDetailArgs(
+                          confraternityId: confraternity.id,
+                          confraternityName: confraternity.name,
+                          confraternityColor: confraternity.color,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Confraternity list item with Hero animation support.
+class _HeroConfraternityItem extends StatelessWidget {
+  const _HeroConfraternityItem({
+    required this.confraternity,
+    required this.isLive,
+  });
+
+  final Confraternity confraternity;
+  final bool isLive;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final confraternityColor = ColorUtils.parseHex(confraternity.color);
+
+    return AppCard(
+      accentColor: confraternityColor,
+      accentPosition: AccentPosition.left,
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      onTap: () {
+        context.goToConfraternity(
+          ConfraternityDetailArgs(
+            confraternityId: confraternity.id,
+            confraternityName: confraternity.name,
+            confraternityColor: confraternity.color,
+          ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Row(
+          children: [
+            // Hero-wrapped color indicator
+            Hero(
+              tag: 'confraternity_icon_${confraternity.id}',
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: confraternityColor.withAlpha(30),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(
+                    color: confraternityColor.withAlpha(100),
+                    width: 1,
+                  ),
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.church_rounded,
+                    color: confraternityColor,
+                    size: 22,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+
+            // Text content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name with live badge
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Hero(
+                          tag: 'confraternity_name_${confraternity.id}',
+                          flightShuttleBuilder:
+                              (
+                                flightContext,
+                                animation,
+                                flightDirection,
+                                fromHeroContext,
+                                toHeroContext,
+                              ) {
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: toHeroContext.widget,
+                                );
+                              },
+                          child: Text(
+                            confraternity.name,
+                            style: theme.textTheme.titleMedium,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                      if (isLive) ...[
+                        const SizedBox(width: 8),
+                        const LiveBadge(size: LiveBadgeSize.small),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+
+                  // Municipality is shown in section header, so show color hint
+                  Row(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          color: confraternityColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Scorri per info rapide',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant.withAlpha(
+                            150,
+                          ),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Chevron
+            AnimatedChevron(color: theme.colorScheme.onSurfaceVariant),
+          ],
+        ),
       ),
     );
   }
@@ -226,6 +550,7 @@ class _HomePageContent extends StatelessWidget {
 /// Card for live processions in horizontal scroll.
 class _LiveProcessionCard extends StatelessWidget {
   const _LiveProcessionCard({
+    required this.confraternityId,
     required this.name,
     required this.municipality,
     required this.color,
@@ -233,6 +558,7 @@ class _LiveProcessionCard extends StatelessWidget {
     this.processionName,
   });
 
+  final String confraternityId;
   final String name;
   final String municipality;
   final String color;
@@ -242,6 +568,7 @@ class _LiveProcessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final confraternityColor = ColorUtils.parseHex(color);
 
     return Container(
       width: 280,
@@ -250,13 +577,16 @@ class _LiveProcessionCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [_parseColor(color), _parseColor(color).withAlpha(200)],
+          colors: [confraternityColor, confraternityColor.withAlpha(200)],
         ),
         headerPadding: const EdgeInsets.all(AppSpacing.md),
         bodyPadding: const EdgeInsets.all(AppSpacing.md),
         header: Row(
           children: [
-            const Icon(Icons.church_rounded, size: 24),
+            Hero(
+              tag: 'confraternity_icon_$confraternityId',
+              child: const Icon(Icons.church_rounded, size: 24),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -291,7 +621,7 @@ class _LiveProcessionCard extends StatelessWidget {
               Text(
                 processionName!,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: _parseColor(color),
+                  color: confraternityColor,
                   fontWeight: FontWeight.w500,
                 ),
                 maxLines: 1,
@@ -303,14 +633,5 @@ class _LiveProcessionCard extends StatelessWidget {
         onTap: onTap,
       ),
     );
-  }
-
-  Color _parseColor(String hexColor) {
-    try {
-      final hex = hexColor.replaceFirst('#', '');
-      return Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {
-      return Colors.grey;
-    }
   }
 }

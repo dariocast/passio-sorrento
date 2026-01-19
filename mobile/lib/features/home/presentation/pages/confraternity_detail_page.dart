@@ -71,18 +71,21 @@ class ConfraternityDetailPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Icon
+                    // Icon with Hero animation
                     Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: contrastColor.withAlpha(20),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.church_rounded,
-                          size: 64,
-                          color: contrastColor.withAlpha(100),
+                      child: Hero(
+                        tag: 'confraternity_icon_${args.confraternityId}',
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: contrastColor.withAlpha(20),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.church_rounded,
+                            size: 64,
+                            color: contrastColor.withAlpha(100),
+                          ),
                         ),
                       ),
                     ),
