@@ -11,6 +11,10 @@ class Weather extends Equatable {
     required this.description,
     required this.icon,
     required this.precipitationProbability,
+    required this.humidity,
+    this.feelsLike,
+    required this.windSpeed,
+    this.windDeg,
     required this.timestamp,
   });
 
@@ -29,6 +33,18 @@ class Weather extends Equatable {
   /// Precipitation probability (0-100).
   final int precipitationProbability;
 
+  /// Humidity percentage (0-100).
+  final int humidity;
+
+  /// Feels like temperature in Celsius.
+  final double? feelsLike;
+
+  /// Wind speed in m/s.
+  final double windSpeed;
+
+  /// Wind direction in degrees.
+  final int? windDeg;
+
   /// Timestamp of the weather data.
   final DateTime timestamp;
 
@@ -39,6 +55,10 @@ class Weather extends Equatable {
     description,
     icon,
     precipitationProbability,
+    humidity,
+    feelsLike,
+    windSpeed,
+    windDeg,
     timestamp,
   ];
 }

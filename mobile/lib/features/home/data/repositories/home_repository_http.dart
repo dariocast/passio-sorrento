@@ -24,33 +24,7 @@ class HomeRepositoryHttp implements HomeRepository {
 
   /// Returns the appropriate base URL based on the platform.
   String get _baseUrl {
-    if (kIsWeb) {
-      return 'http://localhost:5000/api';
-    }
-    // For native platforms, use conditional import or default to localhost
-    return _getNativeBaseUrl();
-  }
-
-  /// Gets the base URL for native platforms (Android/iOS).
-  String _getNativeBaseUrl() {
-    // On native, we can safely import dart:io
-    // Android emulator needs 10.0.2.2, others use localhost
-    try {
-      // ignore: avoid_dynamic_calls
-      if (_isAndroid()) {
-        return 'http://10.0.2.2:5000/api';
-      }
-    } catch (_) {
-      // Fallback if Platform check fails
-    }
-    return 'http://localhost:5000/api';
-  }
-
-  /// Checks if running on Android (only call on native platforms).
-  bool _isAndroid() {
-    // Dynamically check platform only when not on web
-    // This prevents the web build from including dart:io
-    return false; // Default: use localhost (works for iOS, macOS, etc.)
+    return 'http://192.168.1.4:5000/api';
   }
 
   @override

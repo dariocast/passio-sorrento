@@ -18,13 +18,22 @@ import 'features/weather/data/datasources/weather_remote_data_source.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
 import 'features/weather/domain/repositories/weather_repository.dart';
 
-void main() {
-  runApp(const HolyweekApp());
+import 'package:shared_preferences/shared_preferences.dart';
+import 'features/settings/presentation/cubit/settings_cubit.dart';
+
+// ...
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final sharedPreferences = await SharedPreferences.getInstance();
+  runApp(HolyweekApp(sharedPreferences: sharedPreferences));
 }
 
 /// Root application widget with dependency injection.
 class HolyweekApp extends StatelessWidget {
-  const HolyweekApp({super.key});
+  const HolyweekApp({super.key, required this.sharedPreferences});
+
+  final SharedPreferences sharedPreferences;
 
   @override
   Widget build(BuildContext context) {
@@ -59,19 +68,28 @@ class HolyweekApp extends StatelessWidget {
       remoteDataSource: weatherRemoteDataSource,
     );
 
+    final settingsCubit = SettingsCubit(sharedPreferences: sharedPreferences);
+
     return MultiRepositoryProvider(
       providers: [
         RepositoryProvider<HomeRepository>.value(value: homeRepository),
         RepositoryProvider<TrackingRepository>.value(value: trackingRepository),
         RepositoryProvider<WeatherRepository>.value(value: weatherRepository),
       ],
-      child: MaterialApp.router(
-        title: 'Holyweek Tracker',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        routerConfig: AppRouter.router,
+      child: BlocProvider.value(
+        value: settingsCubit,
+        child: BlocBuilder<SettingsCubit, SettingsState>(
+          builder: (context, state) {
+            return MaterialApp.router(
+              title: 'Holyweek Tracker',
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: settingsCubit.themeMode,
+              routerConfig: AppRouter.router,
+            );
+          },
+        ),
       ),
     );
   }

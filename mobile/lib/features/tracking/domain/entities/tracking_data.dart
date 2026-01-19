@@ -18,6 +18,9 @@ class TrackingData extends Equatable {
   /// Reference to the procession/confraternity being tracked.
   final String processionId;
 
+  /// Alias for processionId to match UI requirements.
+  String get confraternityId => processionId;
+
   /// Current geographic position.
   final LatLng position;
 

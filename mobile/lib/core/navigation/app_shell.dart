@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../router/app_router.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../features/settings/presentation/cubit/settings_cubit.dart';
 import '../utils/responsive_utils.dart';
 
 /// Navigation destination definition.
@@ -265,6 +267,8 @@ class _NavigationRailHeader extends StatelessWidget {
   }
 }
 
+// ...
+
 /// Dark mode toggle button.
 class _DarkModeToggle extends StatelessWidget {
   const _DarkModeToggle({required this.extended});
@@ -274,59 +278,61 @@ class _DarkModeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
-    // This is just visual - actual theme switching would need state management
-    if (extended) {
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showThemeSnackbar(context),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-                  size: 20,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  isDark ? 'Tema scuro' : 'Tema chiaro',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) {
+        final isDark = theme.brightness == Brightness.dark;
+        final icon = isDark
+            ? Icons.dark_mode_rounded
+            : Icons.light_mode_rounded;
+        final label = isDark ? 'Tema scuro' : 'Tema chiaro';
 
-    return IconButton(
-      onPressed: () => _showThemeSnackbar(context),
-      icon: Icon(
-        isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-        color: theme.colorScheme.onSurfaceVariant,
-      ),
-      tooltip: isDark ? 'Tema scuro' : 'Tema chiaro',
+        if (extended) {
+          return Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () => _toggleTheme(context, state.themeMode),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      icon,
+                      size: 20,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+
+        return IconButton(
+          onPressed: () => _toggleTheme(context, state.themeMode),
+          icon: Icon(icon, color: theme.colorScheme.onSurfaceVariant),
+          tooltip: label,
+        );
+      },
     );
   }
 
-  void _showThemeSnackbar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Il cambio tema sarà disponibile presto'),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _toggleTheme(BuildContext context, AppThemeMode currentMode) {
+    final newMode = currentMode == AppThemeMode.dark
+        ? AppThemeMode.light
+        : AppThemeMode.dark;
+    context.read<SettingsCubit>().setThemeMode(newMode);
   }
 }

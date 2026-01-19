@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/home/presentation/pages/confraternity_detail_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/settings/presentation/pages/settings_page.dart';
 import '../../features/tracking/presentation/pages/tracking_page.dart';
 import '../../features/weather/presentation/pages/weather_page.dart';
 import '../navigation/app_shell.dart';
@@ -129,14 +130,14 @@ class AppRouter {
               );
             },
           ),
-          // Settings tab (placeholder)
+          // Settings tab
           GoRoute(
             path: AppRoutes.settings,
             name: RouteNames.settings,
             pageBuilder: (context, state) => _buildPageWithTransition(
               context: context,
               state: state,
-              child: const _SettingsPlaceholder(),
+              child: const SettingsPage(),
             ),
           ),
         ],
@@ -229,46 +230,11 @@ class AppRouter {
   }
 }
 
-/// Placeholder settings page.
-class _SettingsPlaceholder extends StatelessWidget {
-  const _SettingsPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('Impostazioni')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.settings_outlined,
-              size: 64,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text('In arrivo', style: theme.textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(
-              'Le impostazioni saranno disponibili presto.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// Extension for convenient navigation.
 extension AppRouterExtension on BuildContext {
   /// Navigate to confraternity detail.
   void goToConfraternity(ConfraternityDetailArgs args) {
-    goNamed(
+    pushNamed(
       RouteNames.confraternityDetail,
       pathParameters: {'id': args.confraternityId},
       extra: args,

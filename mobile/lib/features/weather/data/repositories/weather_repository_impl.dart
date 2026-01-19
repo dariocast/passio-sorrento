@@ -34,13 +34,18 @@ class WeatherRepositoryImpl implements WeatherRepository {
     final main = json['main'] as Map<String, dynamic>;
     final weather =
         (json['weather'] as List<dynamic>).first as Map<String, dynamic>;
+    final wind = json['wind'] as Map<String, dynamic>?;
 
     return Weather(
       municipality: municipality,
       temperature: (main['temp'] as num).toDouble(),
       description: weather['description'] as String,
       icon: weather['icon'] as String,
-      precipitationProbability: ((json['pop'] as num?) ?? 0 * 100).toInt(),
+      precipitationProbability: (((json['pop'] as num?) ?? 0) * 100).toInt(),
+      humidity: (main['humidity'] as num? ?? 0).toInt(),
+      feelsLike: (main['feels_like'] as num?)?.toDouble(),
+      windSpeed: (wind?['speed'] as num? ?? 0).toDouble(),
+      windDeg: wind?['deg'] as int?,
       timestamp: DateTime.fromMillisecondsSinceEpoch(
         (json['dt'] as int) * 1000,
       ),
