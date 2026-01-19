@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/components/components.dart';
 import '../../../../core/router/app_router.dart';
@@ -164,7 +165,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                       // Back button
                       FilledIconButton(
                         icon: Icons.arrow_back_rounded,
-                        onPressed: () => Navigator.of(context).pop(),
+                        onPressed: () => context.pop(),
                         backgroundColor: theme.colorScheme.surface,
                         iconColor: theme.colorScheme.onSurface,
                       ),
@@ -602,9 +603,8 @@ class _ProcessionBottomSheet extends StatelessWidget {
                       label: 'Dettagli',
                       icon: Icons.info_outline_rounded,
                       onPressed: () {
-                        Navigator.of(context).pushNamed(
-                          AppRoutes.confraternityDetail,
-                          arguments: ConfraternityDetailArgs(
+                        context.goToConfraternity(
+                          ConfraternityDetailArgs(
                             confraternityId: tracking.confraternityId,
                             confraternityName: tracking.name ?? 'Processione',
                             confraternityColor: tracking.color,

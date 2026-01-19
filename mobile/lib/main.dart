@@ -65,14 +65,13 @@ class HolyweekApp extends StatelessWidget {
         RepositoryProvider<TrackingRepository>.value(value: trackingRepository),
         RepositoryProvider<WeatherRepository>.value(value: weatherRepository),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'Holyweek Tracker',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
-        initialRoute: AppRoutes.home,
-        onGenerateRoute: AppRouter.generateRoute,
+        routerConfig: AppRouter.router,
       ),
     );
   }

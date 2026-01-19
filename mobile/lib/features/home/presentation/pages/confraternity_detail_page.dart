@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/components/components.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -134,9 +135,9 @@ class ConfraternityDetailPage extends StatelessWidget {
                             status: CardStatus.success,
                             action: TextButton(
                               onPressed: () {
-                                Navigator.of(context).pushNamed(
+                                context.go(
                                   AppRoutes.tracking,
-                                  arguments: TrackingPageArgs(
+                                  extra: TrackingPageArgs(
                                     confraternityId: args.confraternityId,
                                     confraternityName: args.confraternityName,
                                     confraternityColor: args.confraternityColor,
@@ -156,11 +157,8 @@ class ConfraternityDetailPage extends StatelessWidget {
                           ).withAlpha(100),
                           accentPosition: AccentPosition.left,
                           onTap: () {
-                            Navigator.of(context).pushNamed(
-                              AppRoutes.weather,
-                              arguments: WeatherPageArgs(
-                                initialMunicipality: confraternity.municipality,
-                              ),
+                            context.goToWeather(
+                              municipality: confraternity.municipality,
                             );
                           },
                           padding: const EdgeInsets.all(AppSpacing.md),
@@ -255,9 +253,9 @@ class ConfraternityDetailPage extends StatelessWidget {
                           confraternityColor: args.confraternityColor,
                           icon: Icons.map_rounded,
                           onPressed: () {
-                            Navigator.of(context).pushNamed(
+                            context.go(
                               AppRoutes.tracking,
-                              arguments: TrackingPageArgs(
+                              extra: TrackingPageArgs(
                                 confraternityId: args.confraternityId,
                                 confraternityName: args.confraternityName,
                                 confraternityColor: args.confraternityColor,
@@ -273,11 +271,8 @@ class ConfraternityDetailPage extends StatelessWidget {
                           icon: Icons.cloud_outlined,
                           isExpanded: true,
                           onPressed: () {
-                            Navigator.of(context).pushNamed(
-                              AppRoutes.weather,
-                              arguments: WeatherPageArgs(
-                                initialMunicipality: confraternity.municipality,
-                              ),
+                            context.goToWeather(
+                              municipality: confraternity.municipality,
                             );
                           },
                         ),

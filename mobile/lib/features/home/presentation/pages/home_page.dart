@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/components/components.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -49,29 +50,7 @@ class _HomePageContent extends StatelessWidget {
               centerTitle: true,
               titlePadding: const EdgeInsets.only(bottom: 16),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  Icons.cloud_outlined,
-                  color: theme.colorScheme.primary,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.weather);
-                },
-                tooltip: 'Meteo',
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.map_outlined,
-                  color: theme.colorScheme.primary,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pushNamed(AppRoutes.tracking);
-                },
-                tooltip: 'Tracciamento Live',
-              ),
-              const SizedBox(width: 8),
-            ],
+            // No more navigation actions - we have bottom nav now
           ),
         ],
         body: BlocBuilder<HomeCubit, HomeState>(
@@ -172,9 +151,9 @@ class _HomePageContent extends StatelessWidget {
                       color: confraternity.color,
                       processionName: procession.day,
                       onTap: () {
-                        Navigator.of(context).pushNamed(
+                        context.go(
                           AppRoutes.tracking,
-                          arguments: TrackingPageArgs(
+                          extra: TrackingPageArgs(
                             confraternityId: confraternity.id,
                             confraternityName: confraternity.name,
                             confraternityColor: confraternity.color,
@@ -188,34 +167,6 @@ class _HomePageContent extends StatelessWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
           ],
-
-          // Quick Actions
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: QuickActionButton(
-                      icon: Icons.cloud_outlined,
-                      label: 'Meteo',
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(AppRoutes.weather),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: QuickActionButton(
-                      icon: Icons.map_outlined,
-                      label: 'Mappa',
-                      onTap: () =>
-                          Navigator.of(context).pushNamed(AppRoutes.tracking),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
 
           // All Confraternities Section Header
           SliverToBoxAdapter(
@@ -251,9 +202,8 @@ class _HomePageContent extends StatelessWidget {
                   color: confraternity.color,
                   isLive: isLive,
                   onTap: () {
-                    Navigator.of(context).pushNamed(
-                      AppRoutes.confraternityDetail,
-                      arguments: ConfraternityDetailArgs(
+                    context.goToConfraternity(
+                      ConfraternityDetailArgs(
                         confraternityId: confraternity.id,
                         confraternityName: confraternity.name,
                         confraternityColor: confraternity.color,
