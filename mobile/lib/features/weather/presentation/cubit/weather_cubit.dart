@@ -11,8 +11,8 @@ part 'weather_state.dart';
 /// Cubit for managing weather screen state.
 class WeatherCubit extends Cubit<WeatherState> {
   WeatherCubit({required WeatherRepository repository})
-      : _repository = repository,
-        super(const WeatherState());
+    : _repository = repository,
+      super(const WeatherState());
 
   final WeatherRepository _repository;
 
@@ -24,17 +24,21 @@ class WeatherCubit extends Cubit<WeatherState> {
       final weather = await _repository.getCurrentWeather(municipality);
       final forecast = await _repository.getForecast(municipality);
 
-      emit(state.copyWith(
-        status: WeatherStatus.success,
-        currentWeather: weather,
-        forecast: forecast,
-        selectedMunicipality: municipality,
-      ));
+      emit(
+        state.copyWith(
+          status: WeatherStatus.success,
+          currentWeather: weather,
+          forecast: forecast,
+          selectedMunicipality: municipality,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: WeatherStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          status: WeatherStatus.failure,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

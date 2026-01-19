@@ -23,11 +23,16 @@ class HomeLocalDataSource {
   }
 
   /// Caches the list of confraternities.
-  Future<void> cacheConfraternities(List<ConfraternityModel> confraternities) async {
+  Future<void> cacheConfraternities(
+    List<ConfraternityModel> confraternities,
+  ) async {
     await init();
     final jsonList = confraternities.map((c) => c.toJson()).toList();
     await _prefs!.setString(_confraternityKey, json.encode(jsonList));
-    await _prefs!.setInt(_cacheTimestampKey, DateTime.now().millisecondsSinceEpoch);
+    await _prefs!.setInt(
+      _cacheTimestampKey,
+      DateTime.now().millisecondsSinceEpoch,
+    );
   }
 
   /// Gets cached confraternities.
@@ -40,7 +45,9 @@ class HomeLocalDataSource {
     try {
       final List<dynamic> jsonList = json.decode(jsonString) as List<dynamic>;
       return jsonList
-          .map((json) => ConfraternityModel.fromJson(json as Map<String, dynamic>))
+          .map(
+            (json) => ConfraternityModel.fromJson(json as Map<String, dynamic>),
+          )
           .toList();
     } catch (_) {
       return null;

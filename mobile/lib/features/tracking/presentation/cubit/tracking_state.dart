@@ -40,5 +40,10 @@ class TrackingState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [status, trackingData, selectedProcessionId, errorMessage];
+  List<Object?> get props => [
+    status,
+    trackingData,
+    selectedProcessionId,
+    errorMessage,
+  ];
 }

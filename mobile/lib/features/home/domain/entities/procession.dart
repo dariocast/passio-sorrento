@@ -34,11 +34,11 @@ class Procession extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        confraternityId,
-        day,
-        exitTime,
-        expectedReturnTime,
-        isLive,
-      ];
+    id,
+    confraternityId,
+    day,
+    exitTime,
+    expectedReturnTime,
+    isLive,
+  ];
 }

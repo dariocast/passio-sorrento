@@ -6,7 +6,7 @@ import '../../domain/entities/procession.dart';
 import '../../domain/repositories/home_repository.dart';
 
 /// Mock implementation of [HomeRepository] that returns hardcoded data.
-/// 
+///
 /// This is used during development before the backend is ready.
 /// The data structure matches the API reference specification.
 class MockHomeRepository implements HomeRepository {
@@ -27,7 +27,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#000000',
         municipality: 'Sorrento',
         coatOfArms: 'https://example.com/coat1.png',
-        history: 'Fondata nel XV secolo, questa arciconfraternita è una delle più antiche della penisola sorrentina.',
+        history:
+            'Fondata nel XV secolo, questa arciconfraternita è una delle più antiche della penisola sorrentina.',
       ),
       Confraternity(
         id: 'uuid-2',
@@ -35,7 +36,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#2E2E2E',
         municipality: 'Sorrento',
         coatOfArms: 'https://example.com/coat2.png',
-        history: 'La Confraternita di Santa Monica è nota per la sua processione del Venerdì Santo.',
+        history:
+            'La Confraternita di Santa Monica è nota per la sua processione del Venerdì Santo.',
       ),
       Confraternity(
         id: 'uuid-3',
@@ -43,7 +45,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#8B0000',
         municipality: 'Sorrento',
         coatOfArms: 'https://example.com/coat3.png',
-        history: 'Dedicata alla devozione mariana, questa confraternita organizza la processione della Madonna.',
+        history:
+            'Dedicata alla devozione mariana, questa confraternita organizza la processione della Madonna.',
       ),
       Confraternity(
         id: 'uuid-4',
@@ -51,7 +54,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#4A0082',
         municipality: 'Massa Lubrense',
         coatOfArms: 'https://example.com/coat4.png',
-        history: 'Una delle confraternite più importanti di Massa Lubrense, attiva dalla prima metà del 1500.',
+        history:
+            'Una delle confraternite più importanti di Massa Lubrense, attiva dalla prima metà del 1500.',
       ),
       Confraternity(
         id: 'uuid-5',
@@ -59,7 +63,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#006400',
         municipality: 'Meta',
         coatOfArms: 'https://example.com/coat5.png',
-        history: 'Situata nell\'antico borgo del Lauro, mantiene vive le tradizioni pasquali metesi.',
+        history:
+            'Situata nell\'antico borgo del Lauro, mantiene vive le tradizioni pasquali metesi.',
       ),
       Confraternity(
         id: 'uuid-6',
@@ -67,7 +72,8 @@ class MockHomeRepository implements HomeRepository {
         color: '#1E3A5F',
         municipality: 'Piano di Sorrento',
         coatOfArms: 'https://example.com/coat6.png',
-        history: 'La confraternita è custode della tradizionale processione notturna del Giovedì Santo.',
+        history:
+            'La confraternita è custode della tradizionale processione notturna del Giovedì Santo.',
       ),
     ];
   }

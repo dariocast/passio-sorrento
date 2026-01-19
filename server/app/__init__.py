@@ -28,7 +28,6 @@ swagger_config = {
 }
 
 swagger_template = {
-    "openapi": "3.0.3",
     "info": {
         "title": "Holyweek Tracker API",
         "description": "REST API for the Sorrento Holy Week Tracker application. Provides endpoints for confraternities, processions, and live GPS tracking.",

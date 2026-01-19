@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 
 import 'core/router/app_router.dart';
+import 'core/theme/app_theme.dart';
 import 'features/home/data/datasources/home_local_data_source.dart';
 import 'features/home/data/repositories/home_repository_cached.dart';
 import 'features/home/data/repositories/home_repository_http.dart';
@@ -16,7 +17,6 @@ import 'features/tracking/domain/repositories/tracking_repository.dart';
 import 'features/weather/data/datasources/weather_remote_data_source.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
 import 'features/weather/domain/repositories/weather_repository.dart';
-
 
 void main() {
   runApp(const HolyweekApp());
@@ -33,10 +33,15 @@ class HolyweekApp extends StatelessWidget {
 
     // Create data sources
     final homeLocalDataSource = HomeLocalDataSource();
-    final trackingRemoteDataSource = TrackingRemoteDataSource(client: httpClient);
+    final trackingRemoteDataSource = TrackingRemoteDataSource(
+      client: httpClient,
+    );
     // Note: WeatherRemoteDataSource requires an API key - configure in production
     final weatherRemoteDataSource = WeatherRemoteDataSource(
-      apiKey: const String.fromEnvironment('OPENWEATHER_API_KEY', defaultValue: 'e6b6d9b20a45455b6b3a7fe7f8d5899c'),
+      apiKey: const String.fromEnvironment(
+        'OPENWEATHER_API_KEY',
+        defaultValue: 'e6b6d9b20a45455b6b3a7fe7f8d5899c',
+      ),
       client: httpClient,
     );
 
@@ -47,8 +52,12 @@ class HolyweekApp extends StatelessWidget {
       remoteRepository: homeRemoteRepository,
       localDataSource: homeLocalDataSource,
     );
-    final trackingRepository = TrackingRepositoryImpl(remoteDataSource: trackingRemoteDataSource);
-    final weatherRepository = WeatherRepositoryImpl(remoteDataSource: weatherRemoteDataSource);
+    final trackingRepository = TrackingRepositoryImpl(
+      remoteDataSource: trackingRemoteDataSource,
+    );
+    final weatherRepository = WeatherRepositoryImpl(
+      remoteDataSource: weatherRemoteDataSource,
+    );
 
     return MultiRepositoryProvider(
       providers: [
@@ -59,28 +68,8 @@ class HolyweekApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Holyweek Tracker',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF5C1A1B), // Deep burgundy/maroon for Holy Week theme
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-        ),
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF5C1A1B),
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-          appBarTheme: const AppBarTheme(
-            centerTitle: true,
-            elevation: 0,
-          ),
-        ),
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.system,
         initialRoute: AppRoutes.home,
         onGenerateRoute: AppRouter.generateRoute,

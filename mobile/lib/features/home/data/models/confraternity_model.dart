@@ -4,7 +4,7 @@ library;
 import '../../domain/entities/confraternity.dart';
 
 /// Data model for [Confraternity] that handles JSON serialization.
-/// 
+///
 /// This class maps the API response to the domain entity.
 /// JSON keys match the API Reference specification:
 /// - `id`: Unique identifier
@@ -24,7 +24,7 @@ class ConfraternityModel extends Confraternity {
   });
 
   /// Creates a [ConfraternityModel] from a JSON map.
-  /// 
+  ///
   /// Expects keys as defined in the API Reference:
   /// ```json
   /// {

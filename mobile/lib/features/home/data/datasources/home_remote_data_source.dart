@@ -7,7 +7,8 @@ import '../../../../core/constants/constants.dart';
 
 /// Remote data source for home feature data.
 class HomeRemoteDataSource {
-  HomeRemoteDataSource({http.Client? client}) : _client = client ?? http.Client();
+  HomeRemoteDataSource({http.Client? client})
+    : _client = client ?? http.Client();
 
   final http.Client _client;
 

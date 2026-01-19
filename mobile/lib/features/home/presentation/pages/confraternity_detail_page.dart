@@ -3,7 +3,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/components/components.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/color_utils.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../cubit/home_cubit.dart';
 
@@ -15,7 +18,8 @@ class ConfraternityDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = _parseColor(args.confraternityColor);
+    final color = ColorUtils.parseHex(args.confraternityColor);
+    final contrastColor = color.contrastColor;
 
     return BlocProvider(
       create: (context) =>
@@ -25,33 +29,63 @@ class ConfraternityDetailPage extends StatelessWidget {
           slivers: [
             // Hero header with confraternity color
             SliverAppBar(
-              expandedHeight: 200,
+              expandedHeight: 220,
               pinned: true,
               backgroundColor: color,
-              foregroundColor: _contrastColor(color),
+              foregroundColor: contrastColor,
+              stretch: true,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   args.confraternityName,
                   style: TextStyle(
-                    color: _contrastColor(color),
+                    color: contrastColor,
                     fontWeight: FontWeight.bold,
+                    fontSize: 18,
                   ),
                 ),
-                background: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [color.withAlpha(200), color],
+                centerTitle: true,
+                titlePadding: const EdgeInsets.only(bottom: 16),
+                background: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Gradient background
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            color.lighten(0.1),
+                            color,
+                            color.darken(0.1),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.church,
-                      size: 80,
-                      color: _contrastColor(color).withAlpha(100),
+                    // Pattern overlay
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _PatternPainter(
+                          color: contrastColor.withAlpha(15),
+                        ),
+                      ),
                     ),
-                  ),
+                    // Icon
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: contrastColor.withAlpha(20),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.church_rounded,
+                          size: 64,
+                          color: contrastColor.withAlpha(100),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -62,8 +96,8 @@ class ConfraternityDetailPage extends StatelessWidget {
                 builder: (context, state) {
                   if (state.status == HomeStatus.loading) {
                     return const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: CircularProgressIndicator()),
+                      padding: EdgeInsets.all(AppSpacing.xl),
+                      child: LoadingState(),
                     );
                   }
 
@@ -73,67 +107,182 @@ class ConfraternityDetailPage extends StatelessWidget {
 
                   if (confraternity == null) {
                     return const Padding(
-                      padding: EdgeInsets.all(32),
-                      child: Center(child: Text('Confraternita non trovata')),
+                      padding: EdgeInsets.all(AppSpacing.xl),
+                      child: EmptyState(
+                        icon: Icons.search_off_rounded,
+                        title: 'Confraternita non trovata',
+                      ),
                     );
                   }
 
+                  // Check if there's a live procession
+                  final isLive = state.liveProcessions.any(
+                    (p) => p.confraternityId == confraternity.id,
+                  );
+
                   return Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Municipality - clickable to weather
-                        Card(
-                          child: ListTile(
-                            leading: const Icon(Icons.location_city),
-                            title: const Text('Comune'),
-                            subtitle: Text(confraternity.municipality),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () {
-                              Navigator.of(context).pushNamed(
-                                AppRoutes.weather,
-                                arguments: WeatherPageArgs(
-                                  initialMunicipality:
-                                      confraternity.municipality,
+                        // Live banner if applicable
+                        if (isLive)
+                          StatusCard(
+                            icon: Icons.sensors,
+                            title: 'Processione in corso',
+                            subtitle: 'Segui la processione in tempo reale',
+                            status: CardStatus.success,
+                            action: TextButton(
+                              onPressed: () {
+                                Navigator.of(context).pushNamed(
+                                  AppRoutes.tracking,
+                                  arguments: TrackingPageArgs(
+                                    confraternityId: args.confraternityId,
+                                    confraternityName: args.confraternityName,
+                                    confraternityColor: args.confraternityColor,
+                                  ),
+                                );
+                              },
+                              child: const Text('Segui'),
+                            ),
+                          ),
+
+                        if (isLive) const SizedBox(height: AppSpacing.md),
+
+                        // Municipality card - clickable to weather
+                        AppCard(
+                          accentColor: ColorUtils.parseHex(
+                            confraternity.color,
+                          ).withAlpha(100),
+                          accentPosition: AccentPosition.left,
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.weather,
+                              arguments: WeatherPageArgs(
+                                initialMunicipality: confraternity.municipality,
+                              ),
+                            );
+                          },
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.sm,
+                                  ),
                                 ),
-                              );
-                            },
+                                child: Icon(
+                                  Icons.location_city_rounded,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Comune',
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      confraternity.municipality,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.cloud_outlined,
+                                    size: 20,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: AppSpacing.lg),
 
                         // History section
                         Text(
                           'Storia',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          confraternity.history ??
-                              'La storia di questa confraternita sarà disponibile a breve.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Actions
-                        SizedBox(
-                          width: double.infinity,
-                          child: FilledButton.icon(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed(
-                                AppRoutes.tracking,
-                                arguments: TrackingPageArgs(
-                                  confraternityId: args.confraternityId,
-                                  confraternityName: args.confraternityName,
-                                  confraternityColor: args.confraternityColor,
-                                ),
-                              );
-                            },
-                            icon: const Icon(Icons.map),
-                            label: const Text('Vedi sulla mappa'),
+                        const SizedBox(height: AppSpacing.sm),
+                        AppCard(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: Text(
+                            confraternity.history ??
+                                'La storia di questa confraternita sarà disponibile a breve.',
+                            style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
+                        const SizedBox(height: AppSpacing.xl),
+
+                        // Actions section
+                        Text(
+                          'Azioni rapide',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+
+                        // Primary CTA
+                        ConfraternityButton(
+                          label: 'Vedi sulla mappa',
+                          confraternityColor: args.confraternityColor,
+                          icon: Icons.map_rounded,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.tracking,
+                              arguments: TrackingPageArgs(
+                                confraternityId: args.confraternityId,
+                                confraternityName: args.confraternityName,
+                                confraternityColor: args.confraternityColor,
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+
+                        // Secondary CTA
+                        SecondaryButton(
+                          label: 'Meteo a ${confraternity.municipality}',
+                          icon: Icons.cloud_outlined,
+                          isExpanded: true,
+                          onPressed: () {
+                            Navigator.of(context).pushNamed(
+                              AppRoutes.weather,
+                              arguments: WeatherPageArgs(
+                                initialMunicipality: confraternity.municipality,
+                              ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: AppSpacing.xxl),
                       ],
                     ),
                   );
@@ -145,18 +294,33 @@ class ConfraternityDetailPage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Color _parseColor(String hexColor) {
-    try {
-      final hex = hexColor.replaceFirst('#', '');
-      return Color(int.parse('FF$hex', radix: 16));
-    } catch (_) {
-      return Colors.grey;
+/// Custom painter for decorative pattern in header.
+class _PatternPainter extends CustomPainter {
+  const _PatternPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1
+      ..style = PaintingStyle.stroke;
+
+    const spacing = 30.0;
+
+    // Draw diagonal lines
+    for (var x = -size.height; x < size.width + size.height; x += spacing) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x + size.height, size.height),
+        paint,
+      );
     }
   }
 
-  Color _contrastColor(Color color) {
-    final luminance = color.computeLuminance();
-    return luminance > 0.5 ? Colors.black : Colors.white;
-  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -9,7 +9,7 @@ import '../datasources/home_remote_data_source.dart';
 /// Implementation of [HomeRepository].
 class HomeRepositoryImpl implements HomeRepository {
   HomeRepositoryImpl({required HomeRemoteDataSource remoteDataSource})
-      : _remoteDataSource = remoteDataSource;
+    : _remoteDataSource = remoteDataSource;
 
   final HomeRemoteDataSource _remoteDataSource;
 

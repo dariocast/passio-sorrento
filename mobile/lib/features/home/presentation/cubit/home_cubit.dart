@@ -12,8 +12,8 @@ part 'home_state.dart';
 /// Cubit for managing home screen state.
 class HomeCubit extends Cubit<HomeState> {
   HomeCubit({required HomeRepository repository})
-      : _repository = repository,
-        super(const HomeState());
+    : _repository = repository,
+      super(const HomeState());
 
   final HomeRepository _repository;
 
@@ -25,16 +25,17 @@ class HomeCubit extends Cubit<HomeState> {
       final confraternities = await _repository.getConfraternities();
       final liveProcessions = await _repository.getLiveProcessions();
 
-      emit(state.copyWith(
-        status: HomeStatus.success,
-        confraternities: confraternities,
-        liveProcessions: liveProcessions,
-      ));
+      emit(
+        state.copyWith(
+          status: HomeStatus.success,
+          confraternities: confraternities,
+          liveProcessions: liveProcessions,
+        ),
+      );
     } catch (e) {
-      emit(state.copyWith(
-        status: HomeStatus.failure,
-        errorMessage: e.toString(),
-      ));
+      emit(
+        state.copyWith(status: HomeStatus.failure, errorMessage: e.toString()),
+      );
     }
   }
 

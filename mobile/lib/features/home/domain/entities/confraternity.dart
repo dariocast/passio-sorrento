@@ -33,5 +33,12 @@ class Confraternity extends Equatable {
   final String? history;
 
   @override
-  List<Object?> get props => [id, name, color, municipality, coatOfArms, history];
+  List<Object?> get props => [
+    id,
+    name,
+    color,
+    municipality,
+    coatOfArms,
+    history,
+  ];
 }

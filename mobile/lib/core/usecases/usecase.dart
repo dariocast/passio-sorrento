@@ -2,7 +2,7 @@
 library;
 
 /// Base use case interface.
-/// 
+///
 /// [T] is the return type of the use case.
 /// [Params] is the type of parameters the use case accepts.
 abstract class UseCase<T, Params> {
@@ -14,4 +14,3 @@ abstract class UseCase<T, Params> {
 class NoParams {
   const NoParams();
 }
-
