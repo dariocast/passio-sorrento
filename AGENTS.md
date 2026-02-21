@@ -7,10 +7,10 @@ The project is a monorepo clearly divided as follows:
 
 ```text
 /
-├── mobile/                 # Flutter Project
+├── mobile/                 # Flutter Public App (iOS + Android)
 │   ├── lib/
-│   │   ├── core/           # Shared components, utils, errors, theme
-│   │   ├── features/       # Feature-based folders (home, weather, tracking)
+│   │   ├── core/           # Shared components, utils, errors, theme, router
+│   │   ├── features/       # Feature-based folders (home, weather, tracking, settings)
 │   │   │   ├── [feature]/
 │   │   │       ├── data/
 │   │   │       ├── domain/
@@ -18,25 +18,34 @@ The project is a monorepo clearly divided as follows:
 │   │   └── main.dart
 │   └── pubspec.yaml
 │
+├── tracker_app/            # Flutter Tracker App (Android only, internal tool)
+│   ├── lib/
+│   │   ├── data/           # API client, services (location, config)
+│   │   ├── domain/         # Entities (Confraternity, TrackingConfig)
+│   │   ├── presentation/   # Cubit, pages
+│   │   └── main.dart
+│   └── pubspec.yaml
+│
 ├── server/                 # Python Backend
 │   ├── app/
-│   │   ├── api/            # Routes & Blueprints
-│   │   ├── core/           # Config, extensions
-│   │   ├── models/         # SQLAlchemy models
-│   │   └── services/       # Business Logic
+│   │   ├── __init__.py     # Flask factory, Swagger config
+│   │   ├── models.py       # SQLAlchemy models
+│   │   └── routes.py       # API Blueprint with all endpoints
 │   ├── requirements.txt
+│   ├── seed.py
 │   └── run.py
 │
-├── docs/                   # Documentation (OpenAPI, etc.)
-└── PRD.md
+├── docs/                   # Documentation (Architecture, API Reference, Database, Contributing)
+└── PLAN.md                 # UI Refactoring Plan (mobile app)
 
 ```
 
-## 2. Mobile Rules (Flutter)
+## 2. Mobile & Tracker Rules (Flutter)
 
 * **State Management:** Mandatory use of `flutter_bloc`. Every complex feature must have its own Bloc/Cubit.
-* **Dependency Injection:** Use `get_it` and `injectable` to manage dependencies between layers.
+* **Dependency Injection:** Pure **constructor injection** via `RepositoryProvider` and `BlocProvider` from `flutter_bloc`. **Do NOT use** `GetIt`, `injectable`, or any service locator pattern.
 * **Architecture:** Strictly respect Data/Domain/Presentation separation. DTOs (Data Transfer Objects) reside in the Data Layer, Entities in the Domain.
+* **No Code Generation:** Do NOT use `freezed`, `json_serializable`, or `build_runner`. All serialization and state classes are manual.
 * **Null Safety:** Strictly Sound Null Safe code.
 * **Linter:** Follow standard `flutter_lints` rules.
 
@@ -53,6 +62,7 @@ Agents will work on specific tasks.
 
 * **Backend Agent:** Handles `server/`. Exposes APIs on `http://localhost:5000`.
 * **Mobile Agent:** Handles `mobile/`. Mocks data if the backend is unreachable, using a `DataSource` interface.
+* **Tracker Agent:** Handles `tracker_app/`. Connects to the same backend to push GPS tracking data.
 
 ## 5. Code Conventions
 
@@ -64,4 +74,4 @@ Agents will work on specific tasks.
 * **Flutter:** 3.x+
 * **Python:** 3.10+
 * **Map:** `flutter_map` + `latlong2`
-* **Http:** `dio` (Flutter), `flask` (Python)
+* **Http:** `http` (Flutter), `flask` (Python)
