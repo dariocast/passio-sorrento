@@ -44,6 +44,7 @@ class TrackingActive extends TrackingState {
   final DateTime? lastUpdateTime;
   final int successCount;
   final int failureCount;
+  final int queuedCount;
   final String? lastError;
 
   const TrackingActive({
@@ -52,6 +53,7 @@ class TrackingActive extends TrackingState {
     this.lastUpdateTime,
     this.successCount = 0,
     this.failureCount = 0,
+    this.queuedCount = 0,
     this.lastError,
   });
 
@@ -61,6 +63,7 @@ class TrackingActive extends TrackingState {
     DateTime? lastUpdateTime,
     int? successCount,
     int? failureCount,
+    int? queuedCount,
     String? lastError,
   }) {
     return TrackingActive(
@@ -69,6 +72,7 @@ class TrackingActive extends TrackingState {
       lastUpdateTime: lastUpdateTime ?? this.lastUpdateTime,
       successCount: successCount ?? this.successCount,
       failureCount: failureCount ?? this.failureCount,
+      queuedCount: queuedCount ?? this.queuedCount,
       lastError: lastError,
     );
   }

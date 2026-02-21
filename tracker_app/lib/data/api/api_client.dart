@@ -3,6 +3,9 @@ import 'package:http/http.dart' as http;
 import '../../domain/entities/confraternity.dart';
 
 /// API client for communication with the Holyweek Tracker server.
+///
+/// This is a low-level HTTP client. The presentation layer should
+/// use [TrackingRepository] instead of this class directly.
 class ApiClient {
   final String baseUrl;
   final http.Client _client;
@@ -29,8 +32,7 @@ class ApiClient {
   }
 
   /// Logs a GPS position for a confraternity.
-  /// Returns true if successful.
-  Future<LogPositionResult> logPosition({
+  Future<ApiLogResult> logPosition({
     required String confraternityId,
     required double latitude,
     required double longitude,
@@ -50,13 +52,13 @@ class ApiClient {
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200 && data['error'] == null) {
-      return LogPositionResult(
+      return ApiLogResult(
         success: true,
         id: data['data']['id'],
         timestamp: data['data']['last_updated'],
       );
     } else {
-      return LogPositionResult(
+      return ApiLogResult(
         success: false,
         error: data['error'] ?? 'Unknown error',
       );
@@ -68,14 +70,17 @@ class ApiClient {
   }
 }
 
-/// Result of a position log request.
-class LogPositionResult {
+/// Internal result type for the API position log response.
+///
+/// This is mapped to [LogPositionResult] in the domain layer
+/// by [TrackingRepositoryImpl].
+class ApiLogResult {
   final bool success;
   final int? id;
   final String? timestamp;
   final String? error;
 
-  const LogPositionResult({
+  const ApiLogResult({
     required this.success,
     this.id,
     this.timestamp,

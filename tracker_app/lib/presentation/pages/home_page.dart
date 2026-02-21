@@ -371,6 +371,14 @@ class _HomePageState extends State<HomePage> {
                         ? Colors.red
                         : Colors.grey,
                   ),
+                  if (state.queuedCount > 0) ...[
+                    const Divider(),
+                    _buildStatRow(
+                      'Queued (offline)',
+                      '${state.queuedCount}',
+                      valueColor: Colors.orange,
+                    ),
+                  ],
                   if (state.lastError != null) ...[
                     const Divider(),
                     Text(

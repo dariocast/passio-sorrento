@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'data/api/api_client.dart';
+import 'data/repositories/tracking_repository_impl.dart';
 import 'data/services/config_service.dart';
 import 'data/services/location_service.dart';
+import 'data/services/offline_queue_service.dart';
 import 'presentation/cubit/tracking_cubit.dart';
 import 'presentation/pages/home_page.dart';
 
@@ -34,6 +37,9 @@ class TrackerApp extends StatelessWidget {
         create: (_) => TrackingCubit(
           configService: ConfigService(),
           locationService: LocationService(),
+          offlineQueueService: OfflineQueueService(),
+          repositoryFactory: (serverUrl) =>
+              TrackingRepositoryImpl(apiClient: ApiClient(baseUrl: serverUrl)),
         )..initialize(),
         child: const HomePage(),
       ),

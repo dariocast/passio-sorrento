@@ -1,36 +1,50 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
-import '../../data/api/api_client.dart';
 import '../../data/services/config_service.dart';
 import '../../data/services/location_service.dart';
+import '../../data/services/offline_queue_service.dart';
 import '../../domain/entities/confraternity.dart';
-import '../../domain/entities/tracking_config.dart';
+import '../../domain/repositories/tracking_repository.dart';
 import 'tracking_state.dart';
 
 /// Cubit for managing tracking state.
+///
+/// Depends on [TrackingRepository] abstraction (not ApiClient directly),
+/// [ConfigService] for persisting configuration,
+/// [LocationService] for GPS updates, and
+/// [OfflineQueueService] for buffering positions when offline.
 class TrackingCubit extends Cubit<TrackingState> {
   final ConfigService _configService;
   final LocationService _locationService;
-  ApiClient? _apiClient;
+  final OfflineQueueService _offlineQueue;
+  TrackingRepository? _repository;
+
+  /// Factory function to create a new [TrackingRepository] given a server URL.
+  final TrackingRepository Function(String serverUrl) _repositoryFactory;
+
   StreamSubscription<Position>? _positionSubscription;
 
   TrackingCubit({
     required ConfigService configService,
     required LocationService locationService,
+    required OfflineQueueService offlineQueueService,
+    required TrackingRepository Function(String serverUrl) repositoryFactory,
   }) : _configService = configService,
        _locationService = locationService,
+       _offlineQueue = offlineQueueService,
+       _repositoryFactory = repositoryFactory,
        super(const TrackingInitial());
 
   /// Initialize the cubit, loading saved configuration.
   Future<void> initialize() async {
     try {
       final config = await _configService.loadConfig();
-      _apiClient = ApiClient(baseUrl: config.serverUrl);
+      _repository = _repositoryFactory(config.serverUrl);
 
       List<Confraternity> confraternities = [];
       try {
-        confraternities = await _apiClient!.fetchConfraternities();
+        confraternities = await _repository!.fetchConfraternities();
       } catch (e) {
         // Continue without confraternities, user can retry
       }
@@ -49,12 +63,12 @@ class TrackingCubit extends Cubit<TrackingState> {
     if (currentState is! TrackingConfigured) return;
 
     final newConfig = currentState.config.copyWith(serverUrl: url);
-    _apiClient = ApiClient(baseUrl: url);
+    _repository?.dispose();
+    _repository = _repositoryFactory(url);
 
     emit(currentState.copyWith(config: newConfig));
     await _configService.saveConfig(newConfig);
 
-    // Try to fetch confraternities with new URL
     await fetchConfraternities();
   }
 
@@ -64,7 +78,7 @@ class TrackingCubit extends Cubit<TrackingState> {
     if (currentState is! TrackingConfigured) return;
 
     try {
-      final confraternities = await _apiClient!.fetchConfraternities();
+      final confraternities = await _repository!.fetchConfraternities();
       emit(
         currentState.copyWith(
           confraternities: confraternities,
@@ -108,7 +122,6 @@ class TrackingCubit extends Cubit<TrackingState> {
 
     final config = currentState.config;
 
-    // Validate configuration
     if (config.confraternityId.isEmpty) {
       emit(
         currentState.copyWith(errorMessage: 'Please select a confraternity'),
@@ -125,33 +138,30 @@ class TrackingCubit extends Cubit<TrackingState> {
       return;
     }
 
-    // Request location permission
     final permissionResult = await _locationService.requestPermission();
     if (!permissionResult.granted) {
       emit(currentState.copyWith(errorMessage: permissionResult.message));
       return;
     }
 
-    // Start location tracking
     _locationService.startTracking(intervalSeconds: config.intervalSeconds);
 
-    // Listen to position updates
     _positionSubscription = _locationService.positionStream.listen(
       _onPositionUpdate,
       onError: _onPositionError,
     );
 
-    emit(TrackingActive(config: config));
+    final queuedCount = await _offlineQueue.queueLength;
+    emit(TrackingActive(config: config, queuedCount: queuedCount));
   }
 
-  /// Handle position update.
+  /// Handle position update — send to server or buffer offline.
   Future<void> _onPositionUpdate(Position position) async {
     final currentState = state;
     if (currentState is! TrackingActive) return;
 
-    // Send position to server
     try {
-      final result = await _apiClient!.logPosition(
+      final result = await _repository!.logPosition(
         confraternityId: currentState.config.confraternityId,
         latitude: position.latitude,
         longitude: position.longitude,
@@ -159,15 +169,21 @@ class TrackingCubit extends Cubit<TrackingState> {
       );
 
       if (result.success) {
+        // Position sent successfully — try to flush offline queue
+        await _flushOfflineQueue(currentState);
+
+        final queuedCount = await _offlineQueue.queueLength;
         emit(
           currentState.copyWith(
             lastPosition: position,
             lastUpdateTime: DateTime.now(),
             successCount: currentState.successCount + 1,
+            queuedCount: queuedCount,
             lastError: null,
           ),
         );
       } else {
+        // Server rejected the position (e.g. invalid secret)
         emit(
           currentState.copyWith(
             failureCount: currentState.failureCount + 1,
@@ -176,12 +192,56 @@ class TrackingCubit extends Cubit<TrackingState> {
         );
       }
     } catch (e) {
-      emit(
-        currentState.copyWith(
-          failureCount: currentState.failureCount + 1,
-          lastError: e.toString(),
+      // Network error — buffer position offline
+      await _offlineQueue.enqueue(
+        QueuedPosition(
+          confraternityId: currentState.config.confraternityId,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          secret: currentState.config.secret,
+          timestamp: DateTime.now(),
         ),
       );
+
+      final queuedCount = await _offlineQueue.queueLength;
+      emit(
+        currentState.copyWith(
+          lastPosition: position,
+          lastUpdateTime: DateTime.now(),
+          failureCount: currentState.failureCount + 1,
+          queuedCount: queuedCount,
+          lastError: 'Offline — position buffered ($queuedCount queued)',
+        ),
+      );
+    }
+  }
+
+  /// Attempt to send all queued offline positions to the server.
+  Future<void> _flushOfflineQueue(TrackingActive currentState) async {
+    final queue = await _offlineQueue.getQueue();
+    if (queue.isEmpty) return;
+
+    int sentCount = 0;
+    for (final position in queue) {
+      try {
+        final result = await _repository!.logPosition(
+          confraternityId: position.confraternityId,
+          latitude: position.latitude,
+          longitude: position.longitude,
+          secret: position.secret,
+        );
+        if (result.success) {
+          sentCount++;
+        } else {
+          break; // Stop flushing on server error
+        }
+      } catch (e) {
+        break; // Stop flushing on network error
+      }
+    }
+
+    if (sentCount > 0) {
+      await _offlineQueue.dequeue(sentCount);
     }
   }
 
@@ -209,9 +269,9 @@ class TrackingCubit extends Cubit<TrackingState> {
       final config = await _configService.loadConfig();
       List<Confraternity> confraternities = [];
       try {
-        confraternities = await _apiClient!.fetchConfraternities();
+        confraternities = await _repository!.fetchConfraternities();
       } catch (e) {
-        // Ignore
+        // Ignore — we still transition to configured state
       }
 
       emit(
@@ -224,7 +284,7 @@ class TrackingCubit extends Cubit<TrackingState> {
   Future<void> close() {
     _positionSubscription?.cancel();
     _locationService.dispose();
-    _apiClient?.dispose();
+    _repository?.dispose();
     return super.close();
   }
 }
