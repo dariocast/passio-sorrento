@@ -1,0 +1,52 @@
+# =============================================================================
+# Holyweek Tracker API — Docker Compose
+# =============================================================================
+#
+# Usage:
+#   docker compose up -d            # Start in detached mode
+#   docker compose up -d --build    # Rebuild and start
+#   docker compose logs -f api      # Follow logs
+#   docker compose down             # Stop and remove containers
+#
+# First-time setup (with seed data):
+#   SEED_DB=true docker compose up -d --build
+#
+# =============================================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: holyweek-api
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-5000}:5000"
+    volumes:
+      # Persist SQLite database across container restarts
+      - holyweek-data:/app/instance
+    environment:
+      # Flask configuration
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///holyweek.db}
+      # API authentication
+      - API_KEY=${API_KEY:-change-me-in-production}
+      - CAPOFILA_SECRET=${CAPOFILA_SECRET:-change-me-in-production}
+      # Admin Interface
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-change-me-in-production}
+      # Gunicorn tuning
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-2}
+      - GUNICORN_TIMEOUT=${GUNICORN_TIMEOUT:-120}
+      # Set to "true" on first run to populate the database
+      - SEED_DB=${SEED_DB:-false}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  holyweek-data:
+    driver: local
