@@ -1,0 +1,67 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Edit' if is_edit else 'New' }} Confraternity{% endblock %}
+{% block page_title %}{{ 'Edit' if is_edit else 'New' }} Confraternity{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="POST" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
+        {{ form.hidden_tag() }}
+
+        <div>
+            <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Name <span
+                    class="text-red-500">*</span></label>
+            <input type="text" name="name" id="name" value="{{ form.name.data or '' }}" required maxlength="255"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            {% if form.name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.name.errors[0] }}</p>{% endif %}
+        </div>
+
+        <div>
+            <label for="color" class="block text-sm font-medium text-slate-700 mb-1.5">Color <span
+                    class="text-red-500">*</span></label>
+            <div class="flex items-center gap-3">
+                <input type="color" id="color_picker" value="{{ form.color.data or '#000000' }}"
+                    class="h-10 w-14 rounded cursor-pointer border border-slate-300"
+                    onchange="document.getElementById('color').value = this.value">
+                <input type="text" name="color" id="color" value="{{ form.color.data or '#000000' }}" required
+                    pattern="^#[0-9A-Fa-f]{3,6}$" maxlength="7"
+                    onchange="document.getElementById('color_picker').value = this.value"
+                    class="w-32 px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            </div>
+            {% if form.color.errors %}<p class="text-xs text-red-600 mt-1">{{ form.color.errors[0] }}</p>{% endif %}
+        </div>
+
+        <div>
+            <label for="municipality" class="block text-sm font-medium text-slate-700 mb-1.5">Municipality <span
+                    class="text-red-500">*</span></label>
+            <input type="text" name="municipality" id="municipality" value="{{ form.municipality.data or '' }}" required
+                maxlength="100"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            {% if form.municipality.errors %}<p class="text-xs text-red-600 mt-1">{{ form.municipality.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div>
+            <label for="coat_of_arms" class="block text-sm font-medium text-slate-700 mb-1.5">Coat of Arms Path</label>
+            <input type="text" name="coat_of_arms" id="coat_of_arms" value="{{ form.coat_of_arms.data or '' }}"
+                maxlength="500" placeholder="/assets/stemmi/example.png"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+        </div>
+
+        <div>
+            <label for="history" class="block text-sm font-medium text-slate-700 mb-1.5">History</label>
+            <textarea name="history" id="history" rows="5"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-y">{{ form.history.data or '' }}</textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+            <button type="submit"
+                class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
+                {{ 'Update' if is_edit else 'Create' }} Confraternity
+            </button>
+            <a href="{{ url_for('admin.confraternities_list') }}"
+                class="text-sm text-slate-500 hover:text-slate-700 transition-colors">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

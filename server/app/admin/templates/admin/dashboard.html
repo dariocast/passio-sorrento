@@ -1,0 +1,79 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Confraternities</p>
+                <p class="text-3xl font-bold text-slate-900 mt-1">{{ stats.confraternities }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center">
+                <i data-lucide="church" class="w-5 h-5 text-indigo-600"></i>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.confraternities_list') }}"
+            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-3 inline-block">View all →</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Processions</p>
+                <p class="text-3xl font-bold text-slate-900 mt-1">{{ stats.processions }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-violet-50 flex items-center justify-center">
+                <i data-lucide="calendar" class="w-5 h-5 text-violet-600"></i>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.processions_list') }}"
+            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-3 inline-block">View all →</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Tracking Logs</p>
+                <p class="text-3xl font-bold text-slate-900 mt-1">{{ stats.tracking_logs }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <i data-lucide="map-pin" class="w-5 h-5 text-emerald-600"></i>
+            </div>
+        </div>
+        <a href="{{ url_for('admin.tracking_list') }}"
+            class="text-xs text-indigo-600 hover:text-indigo-800 font-medium mt-3 inline-block">View all →</a>
+    </div>
+
+    <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-slate-500">Live Now</p>
+                <p class="text-3xl font-bold text-slate-900 mt-1">{{ stats.live_processions }}</p>
+            </div>
+            <div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center">
+                <i data-lucide="radio" class="w-5 h-5 text-red-600"></i>
+            </div>
+        </div>
+        {% if stats.live_processions > 0 %}
+        <span
+            class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full mt-3">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Active
+        </span>
+        {% else %}
+        <span class="text-xs text-slate-400 mt-3 inline-block">No active processions</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+    <h3 class="text-base font-semibold text-slate-900 mb-1">Database Backup</h3>
+    <p class="text-sm text-slate-500 mb-4">Download a consistent snapshot of the SQLite database.</p>
+    <a href="{{ url_for('admin.backup') }}"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-medium transition-colors">
+        <i data-lucide="download" class="w-4 h-4"></i> Download Backup
+    </a>
+</div>
+{% endblock %}

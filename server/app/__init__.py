@@ -6,10 +6,14 @@ import os
 from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_wtf.csrf import CSRFProtect
 from flasgger import Swagger
 
 # Initialize extensions
 db = SQLAlchemy()
+login_manager = LoginManager()
+csrf = CSRFProtect()
 
 # Swagger/OpenAPI configuration
 swagger_config = {
@@ -115,10 +119,11 @@ def create_app(config=None):
     app = Flask(__name__)
     
     # Default configuration
-    app.config.setdefault('SQLALCHEMY_DATABASE_URI', 
-                          os.environ.get('DATABASE_URL', 'sqlite:///holyweek.db'))
-    app.config.setdefault('SQLALCHEMY_TRACK_MODIFICATIONS', False)
-    app.config.setdefault('SECRET_KEY', os.environ.get('SECRET_KEY', 'dev-secret-key'))
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
+        'DATABASE_URL', 'sqlite:///holyweek.db'
+    )
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
     
     # Override with provided config
     if config:
@@ -127,15 +132,32 @@ def create_app(config=None):
     # Initialize extensions
     db.init_app(app)
     CORS(app)
+    csrf.init_app(app)
     Swagger(app, config=swagger_config, template=swagger_template)
+
+    # Flask-Login setup
+    login_manager.login_view = 'admin.login'
+    login_manager.login_message_category = 'error'
+    login_manager.init_app(app)
+
+    @login_manager.user_loader
+    def load_user(user_id: str):
+        from .models import AdminUser
+        return AdminUser.query.get(int(user_id))
     
-    # Register blueprints
+    # Register API blueprint (CSRF-exempt so external clients work)
     from .routes import api_bp
+    csrf.exempt(api_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
+
+    # Register Admin blueprint
+    from .admin import admin_bp
+    app.register_blueprint(admin_bp)
     
     # Create database tables
     with app.app_context():
         db.create_all()
     
     return app
+
 

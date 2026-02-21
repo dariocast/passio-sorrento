@@ -1,0 +1,59 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Confraternities{% endblock %}
+{% block page_title %}Confraternities{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <p class="text-sm text-slate-500">{{ confraternities|length }} total</p>
+    <a href="{{ url_for('admin.confraternity_create') }}"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
+        <i data-lucide="plus" class="w-4 h-4"></i> Add Confraternity
+    </a>
+</div>
+
+<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead>
+            <tr class="bg-slate-50 border-b border-slate-200 text-left">
+                <th class="px-5 py-3 font-semibold text-slate-600">Color</th>
+                <th class="px-5 py-3 font-semibold text-slate-600">Name</th>
+                <th class="px-5 py-3 font-semibold text-slate-600">Municipality</th>
+                <th class="px-5 py-3 font-semibold text-slate-600 text-right">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+            {% for c in confraternities %}
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-5 py-3">
+                    <span class="inline-block w-6 h-6 rounded-full border border-slate-200"
+                        style="background-color:{{ c.color }}"></span>
+                </td>
+                <td class="px-5 py-3 font-medium text-slate-900">{{ c.name }}</td>
+                <td class="px-5 py-3 text-slate-600">{{ c.municipality }}</td>
+                <td class="px-5 py-3 text-right">
+                    <div class="flex items-center justify-end gap-2">
+                        <a href="{{ url_for('admin.confraternity_edit', cid=c.id) }}"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
+                        </a>
+                        <form method="POST" action="{{ url_for('admin.confraternity_delete', cid=c.id) }}"
+                            onsubmit="return confirm('Delete {{ c.name|e }}? This will also remove related processions and tracking logs.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit"
+                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
+                            </button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" class="px-5 py-10 text-center text-slate-400">No confraternities found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

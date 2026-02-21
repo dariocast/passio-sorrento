@@ -3,7 +3,32 @@ SQLAlchemy models for Holyweek Tracker.
 """
 
 from datetime import datetime
+
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+
 from . import db
+
+
+class AdminUser(UserMixin, db.Model):
+    """Admin user for the web admin interface."""
+    __tablename__ = 'admin_users'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(64), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, password: str) -> None:
+        """Hash and store the password."""
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        """Verify a password against the stored hash."""
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self) -> str:
+        return f'<AdminUser {self.username}>'
 
 
 class Confraternity(db.Model):

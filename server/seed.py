@@ -192,7 +192,7 @@ def create_tracking_logs(confraternities):
 
 def seed_database():
     """Seed the database with initial data."""
-    from app.models import TrackingLog
+    from app.models import TrackingLog, AdminUser
     
     app = create_app()
     
@@ -229,12 +229,27 @@ def seed_database():
             db.session.add(log)
         db.session.commit()
         print(f"   ✅ Inserted {len(tracking_logs)} tracking positions")
+
+        # Create default admin user (if not exists)
+        import os
+        admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+        admin_password = os.environ.get('ADMIN_PASSWORD', 'admin')
+        if not AdminUser.query.filter_by(username=admin_username).first():
+            print("👤 Creating admin user...")
+            admin = AdminUser(username=admin_username)
+            admin.set_password(admin_password)
+            db.session.add(admin)
+            db.session.commit()
+            print(f"   ✅ Admin user '{admin_username}' created")
+        else:
+            print(f"   ℹ️  Admin user '{admin_username}' already exists")
         
         # Verify data
         print("\n📊 Database Summary:")
         print(f"   - Confraternities: {Confraternity.query.count()}")
         print(f"   - Processions: {Procession.query.count()}")
         print(f"   - Tracking Logs: {TrackingLog.query.count()}")
+        print(f"   - Admin Users: {AdminUser.query.count()}")
         
         # List all confraternities
         print("\n📋 Confraternities in database:")

@@ -193,7 +193,7 @@ def get_live_processions():
 # TrackingLog Endpoints (Unified GPS tracking)
 # ============================================================================
 
-CAPOFILA_SECRET = 'capofila123'
+CAPOFILA_SECRET = os.environ.get('CAPOFILA_SECRET', 'capofila123')
 
 
 @api_bp.route('/tracking/log', methods=['POST'])

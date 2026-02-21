@@ -1,0 +1,67 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ 'Edit' if is_edit else 'New' }} Procession{% endblock %}
+{% block page_title %}{{ 'Edit' if is_edit else 'New' }} Procession{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl">
+    <form method="POST" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
+        {{ form.hidden_tag() }}
+
+        <div>
+            <label for="confraternity_id" class="block text-sm font-medium text-slate-700 mb-1.5">Confraternity <span
+                    class="text-red-500">*</span></label>
+            <select name="confraternity_id" id="confraternity_id" required
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                {% for value, label in form.confraternity_id.choices %}
+                <option value="{{ value }}" {{ 'selected' if form.confraternity_id.data==value }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="day" class="block text-sm font-medium text-slate-700 mb-1.5">Day <span
+                    class="text-red-500">*</span></label>
+            <select name="day" id="day" required
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+                {% for value, label in form.day.choices %}
+                <option value="{{ value }}" {{ 'selected' if form.day.data==value }}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="exit_time" class="block text-sm font-medium text-slate-700 mb-1.5">Exit Time <span
+                    class="text-red-500">*</span></label>
+            <input type="datetime-local" name="exit_time" id="exit_time" required
+                value="{{ form.exit_time.data.strftime('%Y-%m-%dT%H:%M') if form.exit_time.data else '' }}"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            {% if form.exit_time.errors %}<p class="text-xs text-red-600 mt-1">{{ form.exit_time.errors[0] }}</p>{%
+            endif %}
+        </div>
+
+        <div>
+            <label for="expected_return_time" class="block text-sm font-medium text-slate-700 mb-1.5">Expected Return
+                Time</label>
+            <input type="datetime-local" name="expected_return_time" id="expected_return_time"
+                value="{{ form.expected_return_time.data.strftime('%Y-%m-%dT%H:%M') if form.expected_return_time.data else '' }}"
+                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+        </div>
+
+        <div class="flex items-center gap-2">
+            <input type="checkbox" name="is_live" id="is_live" {{ 'checked' if form.is_live.data }}
+                class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+            <label for="is_live" class="text-sm font-medium text-slate-700">Is Live</label>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+            <button type="submit"
+                class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
+                {{ 'Update' if is_edit else 'Create' }} Procession
+            </button>
+            <a href="{{ url_for('admin.processions_list') }}"
+                class="text-sm text-slate-500 hover:text-slate-700 transition-colors">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
