@@ -17,22 +17,34 @@ class TrackingConfigured extends TrackingState {
   final TrackingConfig config;
   final List<Confraternity> confraternities;
   final String? errorMessage;
+  final bool isTestingConnection;
+  final String? connectionStatusMessage;
+  final bool? isConnectionOk;
 
   const TrackingConfigured({
     required this.config,
     this.confraternities = const [],
     this.errorMessage,
+    this.isTestingConnection = false,
+    this.connectionStatusMessage,
+    this.isConnectionOk,
   });
 
   TrackingConfigured copyWith({
     TrackingConfig? config,
     List<Confraternity>? confraternities,
     String? errorMessage,
+    bool? isTestingConnection,
+    String? connectionStatusMessage,
+    bool? isConnectionOk,
   }) {
     return TrackingConfigured(
       config: config ?? this.config,
       confraternities: confraternities ?? this.confraternities,
       errorMessage: errorMessage,
+      isTestingConnection: isTestingConnection ?? this.isTestingConnection,
+      connectionStatusMessage: connectionStatusMessage,
+      isConnectionOk: isConnectionOk,
     );
   }
 }

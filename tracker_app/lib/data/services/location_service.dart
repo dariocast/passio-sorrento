@@ -15,19 +15,24 @@ class LocationService {
     return await Geolocator.isLocationServiceEnabled();
   }
 
-  /// Request location permissions.
+  /// Request location and notification permissions.
   /// Returns true if permission is granted.
   Future<PermissionResult> requestPermission() async {
     // Check if location services are enabled
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      return PermissionResult(
+      return const PermissionResult(
         granted: false,
-        message: 'Location services are disabled. Please enable GPS.',
+        message: 'I servizi di localizzazione sono disattivati. Attiva il GPS.',
       );
     }
 
-    // Check current permission status
+    // Request notification permission (required on Android 13+ for foreground service)
+    if (await Permission.notification.isDenied) {
+      await Permission.notification.request();
+    }
+
+    // Check location permission status
     var status = await Permission.locationWhenInUse.status;
 
     if (status.isDenied) {
@@ -35,21 +40,21 @@ class LocationService {
     }
 
     if (status.isPermanentlyDenied) {
-      return PermissionResult(
+      return const PermissionResult(
         granted: false,
         message:
-            'Location permission permanently denied. Please enable in settings.',
+            'Permesso di localizzazione negato permanentemente. Abilitalo nelle impostazioni.',
         openSettings: true,
       );
     }
 
     if (status.isGranted) {
-      return PermissionResult(granted: true);
+      return const PermissionResult(granted: true);
     }
 
-    return PermissionResult(
+    return const PermissionResult(
       granted: false,
-      message: 'Location permission denied.',
+      message: 'Permesso di localizzazione negato.',
     );
   }
 
@@ -61,37 +66,45 @@ class LocationService {
   }
 
   /// Start listening for position updates at the specified interval.
-  void startTracking({required int intervalSeconds}) {
+  /// Uses Android Foreground Service with ongoing notification for reliable background tracking.
+  void startTracking({
+    required int intervalSeconds,
+    String confraternityName = 'Confraternita',
+  }) {
     _positionSubscription?.cancel();
 
-    // Use a timer-based approach for consistent interval updates
-    Timer.periodic(Duration(seconds: intervalSeconds), (timer) async {
-      if (_positionSubscription == null) {
-        timer.cancel();
-        return;
-      }
+    // Use Geolocator stream with Android Foreground Service notification config
+    final androidSettings = AndroidSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 0,
+      forceLocationManager: false,
+      intervalDuration: Duration(seconds: intervalSeconds),
+      foregroundNotificationConfig: ForegroundNotificationConfig(
+        notificationTitle: 'Tracciamento Processione Attivo',
+        notificationText: '$confraternityName — invio coordinate GPS in corso',
+        notificationIcon: const AndroidResource(
+          name: 'ic_launcher',
+          defType: 'mipmap',
+        ),
+        enableWakeLock: true,
+        setOngoing: true,
+      ),
+    );
 
-      try {
-        final position = await getCurrentPosition();
-        _positionController.add(position);
-      } catch (e) {
-        _positionController.addError(e);
-      }
+    // Initial immediate position fetch
+    getCurrentPosition().then((pos) {
+      _positionController.add(pos);
+    }).catchError((e) {
+      _positionController.addError(e);
     });
 
-    // Also listen to continuous updates for accuracy
-    _positionSubscription =
-        Geolocator.getPositionStream(
-          locationSettings: AndroidSettings(
-            accuracy: LocationAccuracy.high,
-            distanceFilter: 10,
-            forceLocationManager: false,
-            intervalDuration: Duration(seconds: intervalSeconds),
-          ),
-        ).listen(
-          (position) => _positionController.add(position),
-          onError: (error) => _positionController.addError(error),
-        );
+    // Start foreground position stream
+    _positionSubscription = Geolocator.getPositionStream(
+      locationSettings: androidSettings,
+    ).listen(
+      (position) => _positionController.add(position),
+      onError: (error) => _positionController.addError(error),
+    );
   }
 
   /// Stop listening for position updates.

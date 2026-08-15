@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tracker App'),
+        title: const Text('Incappucciati Tracker'),
         centerTitle: true,
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage!),
-                backgroundColor: Colors.red,
+                backgroundColor: Colors.red.shade700,
               ),
             );
           }
@@ -57,7 +57,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildConfiguredView(BuildContext context, TrackingConfigured state) {
-    // Initialize text controllers
     if (_serverUrlController.text.isEmpty) {
       _serverUrlController.text = state.config.serverUrl;
     }
@@ -70,19 +69,16 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Configuration Section
-          _buildSectionHeader(context, '⚙️ Configuration'),
+          _buildSectionHeader(context, '⚙️ Configurazione Confraternita'),
           const SizedBox(height: 8),
           _buildConfigCard(context, state),
+          const SizedBox(height: 16),
+
+          _buildSectionHeader(context, '📡 Verifica & Stato'),
+          const SizedBox(height: 8),
+          _buildConnectionTestCard(context, state),
           const SizedBox(height: 24),
 
-          // Status Section
-          _buildSectionHeader(context, '📍 Status'),
-          const SizedBox(height: 8),
-          _buildStatusCard(context, state),
-          const SizedBox(height: 32),
-
-          // Start Button
           _buildStartButton(context, state),
         ],
       ),
@@ -102,40 +98,39 @@ class _HomePageState extends State<HomePage> {
     final cubit = context.read<TrackingCubit>();
 
     return Card(
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Server URL
             TextField(
               controller: _serverUrlController,
               decoration: const InputDecoration(
-                labelText: 'Server URL',
-                hintText: 'http://localhost:5000/api',
+                labelText: 'URL Server API',
+                hintText: 'http://192.168.1.X:5000/api',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.dns_rounded),
               ),
               onSubmitted: (value) => cubit.updateServerUrl(value),
             ),
             const SizedBox(height: 16),
 
-            // Confraternity Dropdown
             _buildConfraternityDropdown(context, state),
             const SizedBox(height: 16),
 
-            // Secret
             TextField(
               controller: _secretController,
               decoration: const InputDecoration(
-                labelText: 'Secret',
+                labelText: 'Secret Capofila',
                 border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.vpn_key_rounded),
               ),
               obscureText: true,
               onChanged: (value) => cubit.updateConfig(secret: value),
             ),
             const SizedBox(height: 16),
 
-            // Update Interval
             _buildIntervalSelector(context, state),
           ],
         ),
@@ -154,16 +149,16 @@ class _HomePageState extends State<HomePage> {
         children: [
           Expanded(
             child: Text(
-              'No confraternities loaded',
+              'Nessuna confraternita caricata',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: Colors.grey),
             ),
           ),
-          IconButton(
+          IconButton.filledTonal(
             onPressed: () => cubit.fetchConfraternities(),
             icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh confraternities',
+            tooltip: 'Ricarica elenco',
           ),
         ],
       );
@@ -178,10 +173,11 @@ class _HomePageState extends State<HomePage> {
     }
 
     return DropdownButtonFormField<Confraternity>(
-      value: selectedConfraternity,
+      initialValue: selectedConfraternity,
       decoration: const InputDecoration(
-        labelText: 'Confraternity',
+        labelText: 'Seleziona Confraternita',
         border: OutlineInputBorder(),
+        prefixIcon: Icon(Icons.church_rounded),
       ),
       items: state.confraternities.map((c) {
         return DropdownMenuItem(
@@ -189,15 +185,19 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             children: [
               Container(
-                width: 16,
-                height: 16,
+                width: 14,
+                height: 14,
                 decoration: BoxDecoration(
                   color: _parseColor(c.color),
                   shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(child: Text(c.name, overflow: TextOverflow.ellipsis)),
+              Text(
+                c.name,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.w500),
+              ),
             ],
           ),
         );
@@ -224,13 +224,18 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Update Interval: ${state.config.intervalSeconds} seconds',
-          style: Theme.of(context).textTheme.bodyMedium,
+          'Intervallo invio: ogni ${state.config.intervalSeconds} secondi',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 8),
         SegmentedButton<int>(
           segments: intervals.map((interval) {
-            return ButtonSegment(value: interval, label: Text('${interval}s'));
+            return ButtonSegment(
+              value: interval,
+              label: Text('${interval}s'),
+            );
           }).toList(),
           selected: {state.config.intervalSeconds},
           onSelectionChanged: (selected) {
@@ -241,29 +246,59 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildStatusCard(BuildContext context, TrackingConfigured state) {
+  Widget _buildConnectionTestCard(BuildContext context, TrackingConfigured state) {
+    final cubit = context.read<TrackingCubit>();
+
     return Card(
+      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
               children: [
-                Container(
-                  width: 12,
-                  height: 12,
-                  decoration: const BoxDecoration(
-                    color: Colors.grey,
-                    shape: BoxShape.circle,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Test Server',
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        state.connectionStatusMessage ??
+                            'Verifica la connessione prima di iniziare il corteo',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: state.isConnectionOk == true
+                              ? Colors.green.shade800
+                              : state.isConnectionOk == false
+                                  ? Colors.red.shade800
+                                  : Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Text('INACTIVE'),
+                ElevatedButton.icon(
+                  onPressed: state.isTestingConnection
+                      ? null
+                      : () => cubit.testConnection(),
+                  icon: state.isTestingConnection
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.wifi_find_rounded),
+                  label: const Text('Test'),
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-            const Text('Last: --'),
-            const Text('Updates: 0 sent'),
           ],
         ),
       ),
@@ -275,35 +310,35 @@ class _HomePageState extends State<HomePage> {
     final isConfigured = state.config.confraternityId.isNotEmpty;
 
     return SizedBox(
-      height: 80,
-      child: ElevatedButton(
+      height: 64,
+      child: FilledButton.icon(
         onPressed: isConfigured ? () => cubit.startTracking() : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.green,
+        style: FilledButton.styleFrom(
+          backgroundColor: Colors.green.shade700,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
         ),
-        child: const Text(
-          'START TRACKING',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        icon: const Icon(Icons.play_arrow_rounded, size: 30),
+        label: const Text(
+          'AVVIA TRACCIAMENTO',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
       ),
     );
   }
 
   Widget _buildActiveView(BuildContext context, TrackingActive state) {
-    final cubit = context.read<TrackingCubit>();
-
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Tracking Info Card
+          // Tracking Banner
           Card(
             color: Colors.green.shade50,
+            elevation: 2,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -313,77 +348,113 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       _buildPulsingIndicator(),
                       const SizedBox(width: 8),
-                      const Text(
-                        'TRACKING ACTIVE',
+                      Text(
+                        'TRACCIAMENTO ATTIVO',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green,
+                          color: Colors.green.shade900,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Text(
-                    'Confraternity: ${state.config.confraternityName}',
-                    style: Theme.of(context).textTheme.titleMedium,
+                    state.config.confraternityName,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    'Interval: ${state.config.intervalSeconds}s',
+                    'Invio ogni ${state.config.intervalSeconds} secondi',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
           ),
+          const SizedBox(height: 12),
+
+          // Background Service notification reminder
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.notification_important_rounded, color: Colors.blue.shade800),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Tracciamento attivo in background. Puoi chiudere l\'app o bloccare lo schermo.',
+                    style: TextStyle(fontSize: 12, color: Colors.blue.shade900),
+                  ),
+                ),
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
 
           // Stats Card
           Card(
+            elevation: 2,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   _buildStatRow(
-                    'Last Position',
+                    'Ultima Posizione',
                     state.lastPosition != null
-                        ? '${state.lastPosition!.latitude.toStringAsFixed(4)}, ${state.lastPosition!.longitude.toStringAsFixed(4)}'
-                        : '--',
+                        ? '${state.lastPosition!.latitude.toStringAsFixed(5)}, ${state.lastPosition!.longitude.toStringAsFixed(5)}'
+                        : 'In attesa segnale GPS...',
                   ),
                   const Divider(),
                   _buildStatRow(
-                    'Last Update',
+                    'Precisione GPS',
+                    state.lastPosition != null
+                        ? '±${state.lastPosition!.accuracy.toStringAsFixed(1)} m'
+                        : '--',
+                    valueColor: (state.lastPosition?.accuracy ?? 100) < 15
+                        ? Colors.green.shade700
+                        : Colors.orange.shade800,
+                  ),
+                  const Divider(),
+                  _buildStatRow(
+                    'Ultimo Invio',
                     state.lastUpdateTime != null
                         ? _formatTime(state.lastUpdateTime!)
                         : '--',
                   ),
                   const Divider(),
                   _buildStatRow(
-                    'Success',
+                    'Posizioni Inviate',
                     '${state.successCount}',
-                    valueColor: Colors.green,
+                    valueColor: Colors.green.shade700,
                   ),
                   const Divider(),
                   _buildStatRow(
-                    'Failed',
+                    'Errori Rete',
                     '${state.failureCount}',
-                    valueColor: state.failureCount > 0
-                        ? Colors.red
-                        : Colors.grey,
+                    valueColor: state.failureCount > 0 ? Colors.red : Colors.grey,
                   ),
                   if (state.queuedCount > 0) ...[
                     const Divider(),
                     _buildStatRow(
-                      'Queued (offline)',
+                      'In coda offline',
                       '${state.queuedCount}',
-                      valueColor: Colors.orange,
+                      valueColor: Colors.orange.shade800,
                     ),
                   ],
                   if (state.lastError != null) ...[
                     const Divider(),
                     Text(
                       state.lastError!,
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(color: Colors.red, fontSize: 12),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -392,23 +463,24 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
 
-          const Spacer(),
+          const SizedBox(height: 32),
 
           // Stop Button
           SizedBox(
-            height: 80,
-            child: ElevatedButton(
-              onPressed: () => cubit.stopTracking(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+            height: 64,
+            child: FilledButton.icon(
+              onPressed: () => _confirmStopTracking(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.red.shade700,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                'STOP TRACKING',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              icon: const Icon(Icons.stop_rounded, size: 28),
+              label: const Text(
+                'STOP TRACCIAMENTO',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -417,19 +489,53 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _confirmStopTracking(BuildContext context) {
+    final cubit = context.read<TrackingCubit>();
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Terminare il tracciamento?'),
+        content: const Text(
+          'Vuoi davvero interrompere l\'invio della posizione GPS per questa processione?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Annulla'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              cubit.stopTracking();
+            },
+            child: const Text('Ferma Tracciamento'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildPulsingIndicator() {
     return TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0.8, end: 1.0),
-      duration: const Duration(milliseconds: 500),
+      tween: Tween(begin: 0.8, end: 1.1),
+      duration: const Duration(milliseconds: 600),
       builder: (context, value, child) {
         return Transform.scale(
           scale: value,
           child: Container(
-            width: 16,
-            height: 16,
-            decoration: const BoxDecoration(
-              color: Colors.green,
+            width: 14,
+            height: 14,
+            decoration: BoxDecoration(
+              color: Colors.green.shade600,
               shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.green.withAlpha(120),
+                  blurRadius: 6,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
           ),
         );
@@ -443,7 +549,7 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
           Text(
             value,
             style: TextStyle(fontWeight: FontWeight.bold, color: valueColor),
@@ -471,9 +577,10 @@ class _HomePageState extends State<HomePage> {
             ),
             const SizedBox(height: 24),
             if (state.canRetry)
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: () => cubit.initialize(),
-                child: const Text('Retry'),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Riprova'),
               ),
           ],
         ),

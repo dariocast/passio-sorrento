@@ -26,8 +26,22 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _HomePageContent extends StatelessWidget {
+class _HomePageContent extends StatefulWidget {
   const _HomePageContent();
+
+  @override
+  State<_HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<_HomePageContent> {
+  final TextEditingController _searchController = TextEditingController();
+  String? _selectedMunicipality;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +61,7 @@ class _HomePageContent extends StatelessWidget {
                 'Settimana Santa',
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               centerTitle: true,
@@ -100,9 +115,27 @@ class _HomePageContent extends StatelessWidget {
     // Check if there are any live processions
     final hasLiveProcessions = state.liveProcessions.isNotEmpty;
 
-    // Group confraternities by municipality
-    final groupedByMunicipality = _groupByMunicipality(state.confraternities);
+    // Filter confraternities based on search and municipality
+    final query = _searchController.text.trim().toLowerCase();
+    final filteredConfraternities = state.confraternities.where((c) {
+      final matchesSearch = query.isEmpty ||
+          c.name.toLowerCase().contains(query) ||
+          c.municipality.toLowerCase().contains(query);
+      final matchesMunicipality = _selectedMunicipality == null ||
+          c.municipality == _selectedMunicipality;
+      return matchesSearch && matchesMunicipality;
+    }).toList();
+
+    // Group filtered confraternities by municipality
+    final groupedByMunicipality = _groupByMunicipality(filteredConfraternities);
     final municipalities = groupedByMunicipality.keys.toList()..sort();
+
+    // Distinct list of all available municipalities
+    final allMunicipalities = state.confraternities
+        .map((c) => c.municipality)
+        .toSet()
+        .toList()
+      ..sort();
 
     return RefreshIndicator(
       onRefresh: () => context.read<HomeCubit>().refresh(),
@@ -110,7 +143,7 @@ class _HomePageContent extends StatelessWidget {
       child: CustomScrollView(
         slivers: [
           // Live Now Section
-          if (hasLiveProcessions) ...[
+          if (hasLiveProcessions && query.isEmpty && _selectedMunicipality == null) ...[
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(
@@ -124,9 +157,9 @@ class _HomePageContent extends StatelessWidget {
                     const LiveDot(size: 10),
                     const SizedBox(width: 8),
                     Text(
-                      'In Corso',
+                      'In Corso Ora',
                       style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
@@ -173,6 +206,90 @@ class _HomePageContent extends StatelessWidget {
             ),
             const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.md)),
           ],
+
+          // Search & Filter header
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Cerca confraternita o comune...',
+                      prefixIcon: const Icon(Icons.search_rounded),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: theme.colorScheme.surfaceContainerHighest.withAlpha(120),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                    onChanged: (_) => setState(() {}),
+                  ),
+                  const SizedBox(height: 8),
+                  // Municipality Filter Chips
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        FilterChip(
+                          label: const Text('Tutti i comuni'),
+                          selected: _selectedMunicipality == null,
+                          onSelected: (selected) {
+                            if (selected) {
+                              setState(() => _selectedMunicipality = null);
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 8),
+                        ...allMunicipalities.map((m) {
+                          final isSelected = _selectedMunicipality == m;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              label: Text(m),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedMunicipality = selected ? m : null;
+                                });
+                              },
+                            ),
+                          );
+                        }),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          if (filteredConfraternities.isEmpty)
+            const SliverFillRemaining(
+              hasScrollBody: false,
+              child: EmptyState(
+                icon: Icons.search_off_rounded,
+                title: 'Nessun risultato',
+                message: 'Nessuna confraternita corrisponde ai criteri di ricerca.',
+              ),
+            ),
 
           // Grouped Confraternities by Municipality
           for (final municipality in municipalities) ...[

@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.4.0] - 2026-08-15
+
+### Added
+- **Tracker App (Background Tracking & UI/UX)**:
+  - Persistent foreground service with sticky notification via `ForegroundNotificationConfig` and `enableWakeLock`
+  - Manifest permissions: `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `POST_NOTIFICATIONS`, `WAKE_LOCK`
+  - Interactive "Test Connessione" button with real-time feedback
+  - Live GPS accuracy indicator (±X m) and background tracking banner
+  - Confirmation dialog before stopping active procession tracking
+- **Server (Path History & Metrics)**:
+  - `GET /api/tracking/history/<confraternity_id>` endpoint for polyline trail rendering
+  - `GET /api/stats` endpoint for system health & metrics
+- **Mobile App (Map & Search Enhancements)**:
+  - Dynamic `PolylineLayer` historical trail rendering on map with confraternity accent colors
+  - Map style switcher (OpenStreetMap, Carto Light, Carto Dark)
+  - Interactive `_FilterSheet` with municipality filter chips & search
+  - Live search bar and municipality quick filter chips on `HomePage`
+  - Cache management & App Info cards on `SettingsPage`
+
+## [0.3.1] - 2026-08-15
+- Snapshot before UI/UX & background tracking enhancements
+
 ## [0.3.0] - 2026-01-17
 
 ### Added

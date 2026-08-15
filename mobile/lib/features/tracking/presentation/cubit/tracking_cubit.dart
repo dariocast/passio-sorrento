@@ -1,9 +1,7 @@
-/// Tracking Cubit for managing live tracking state.
-library;
-
 import 'dart:async';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:latlong2/latlong.dart';
 import '../../domain/entities/tracking_data.dart';
 import '../../domain/repositories/tracking_repository.dart';
 
@@ -79,9 +77,46 @@ class TrackingCubit extends Cubit<TrackingState> {
     return data.where((d) => d.processionId == confraternityIdFilter).toList();
   }
 
-  /// Selects a procession to focus on the map.
-  void selectProcession(String? processionId) {
+  /// Selects a procession to focus on the map and loads historical trail.
+  Future<void> selectProcession(String? processionId) async {
+    if (processionId == null) {
+      emit(state.copyWith(clearSelected: true, trailPoints: const []));
+      return;
+    }
+
     emit(state.copyWith(selectedProcessionId: processionId));
+    try {
+      final trail = await _repository.getTrackingHistory(processionId);
+      if (state.selectedProcessionId == processionId) {
+        emit(state.copyWith(trailPoints: trail));
+      }
+    } catch (_) {
+      // Keep existing trail if any
+    }
+  }
+
+  /// Change map tile style (OSM / Light / Dark).
+  void setMapStyle(MapTileStyle style) {
+    emit(state.copyWith(mapStyle: style));
+  }
+
+  /// Update user location on map.
+  void setUserLocation(LatLng? location) {
+    emit(state.copyWith(userLocation: location));
+  }
+
+  /// Filter by municipality.
+  void setMunicipalityFilter(String? municipality) {
+    if (municipality == null) {
+      emit(state.copyWith(clearMunicipality: true));
+    } else {
+      emit(state.copyWith(filterMunicipality: municipality));
+    }
+  }
+
+  /// Filter by search query.
+  void setSearchQuery(String query) {
+    emit(state.copyWith(searchQuery: query));
   }
 
   @override

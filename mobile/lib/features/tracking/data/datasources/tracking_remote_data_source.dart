@@ -28,4 +28,20 @@ class TrackingRemoteDataSource {
       throw Exception('Failed to load tracking data');
     }
   }
+
+  /// Fetches history tracking points for a specific confraternity to draw the path trail.
+  Future<List<Map<String, dynamic>>> getTrackingHistory(String confraternityId) async {
+    final response = await _client.get(
+      Uri.parse('${ApiConstants.baseUrl}/tracking/history/$confraternityId?limit=100'),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> body =
+          json.decode(response.body) as Map<String, dynamic>;
+      final List<dynamic> data = body['data'] as List<dynamic>;
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      return [];
+    }
+  }
 }

@@ -7,9 +7,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/components/components.dart';
+import '../../../../core/constants/constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/color_utils.dart';
+import '../../domain/entities/tracking_data.dart';
 import '../../domain/repositories/tracking_repository.dart';
 import '../cubit/tracking_cubit.dart';
 
@@ -83,15 +85,28 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
             listener: (context, state) {
               // Auto-zoom to fit markers when data loads
               if (state.status == TrackingStatus.success &&
-                  state.trackingData.isNotEmpty) {
+                  state.filteredTrackingData.isNotEmpty) {
                 Future.delayed(const Duration(milliseconds: 300), () {
                   _fitBounds(
-                    state.trackingData.map((t) => t.position).toList(),
+                    state.filteredTrackingData.map((t) => t.position).toList(),
                   );
                 });
               }
             },
             builder: (context, state) {
+              final displayedData = state.filteredTrackingData;
+
+              // Find selected tracking if any
+              TrackingData? selectedTracking;
+              if (state.selectedProcessionId != null) {
+                selectedTracking = displayedData
+                    .where((t) => t.processionId == state.selectedProcessionId)
+                    .firstOrNull;
+              }
+              final trailColor = selectedTracking != null
+                  ? ColorUtils.parseHex(selectedTracking.color)
+                  : theme.colorScheme.primary;
+
               return FlutterMap(
                 mapController: _mapController,
                 options: MapOptions(
@@ -106,22 +121,35 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                   },
                 ),
                 children: [
-                  // OpenStreetMap tile layer
+                  // Dynamic tile layer (OSM / Light / Dark)
                   TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: state.mapStyle.urlTemplate,
                     userAgentPackageName: 'xyz.dariocast.holyweek',
                   ),
 
+                  // Procession historical trail / polyline
+                  if (state.trailPoints.isNotEmpty)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: state.trailPoints,
+                          color: trailColor.withAlpha(220),
+                          strokeWidth: 5.0,
+                          borderColor: Colors.white,
+                          borderStrokeWidth: 1.5,
+                        ),
+                      ],
+                    ),
+
                   // Markers for live processions
                   MarkerLayer(
-                    markers: state.trackingData.map((tracking) {
+                    markers: displayedData.map((tracking) {
                       final isSelected =
                           state.selectedProcessionId == tracking.processionId;
                       return Marker(
                         point: tracking.position,
-                        width: 60,
-                        height: 90,
+                        width: 65,
+                        height: 95,
                         child: _ProcessionMarker(
                           color: ColorUtils.parseHex(tracking.color),
                           name: tracking.name,
@@ -192,9 +220,19 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                                     const LiveDot(size: 8),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${state.trackingData.length} processioni attive',
+                                      '${state.filteredTrackingData.length} in corso',
                                       style: theme.textTheme.bodySmall,
                                     ),
+                                    if (state.filterMunicipality != null) ...[
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '(${state.filterMunicipality})',
+                                        style: theme.textTheme.bodySmall?.copyWith(
+                                          color: theme.colorScheme.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 );
                               },
@@ -203,7 +241,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                         ),
                       ),
 
-                      // Filter button (if showing all)
+                      // Filter button
                       if (widget.args?.confraternityId == null)
                         FilledIconButton(
                           icon: Icons.filter_list_rounded,
@@ -257,7 +295,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Text(
-                          'Caricamento posizioni...',
+                          'Caricamento posizioni GPS...',
                           style: theme.textTheme.bodyMedium,
                         ),
                       ],
@@ -291,7 +329,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
           BlocBuilder<TrackingCubit, TrackingState>(
             builder: (context, state) {
               if (state.status == TrackingStatus.success &&
-                  state.trackingData.isEmpty) {
+                  state.filteredTrackingData.isEmpty) {
                 return Positioned(
                   bottom: AppSpacing.lg,
                   left: AppSpacing.md,
@@ -299,8 +337,9 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                   child: StatusCard(
                     icon: Icons.location_off_rounded,
                     title: 'Nessuna processione attiva',
-                    subtitle:
-                        'Le processioni appariranno qui quando inizieranno',
+                    subtitle: state.filterMunicipality != null
+                        ? 'Nessun corteo per ${state.filterMunicipality}'
+                        : 'I cortei appariranno qui quando saranno in corso',
                     status: CardStatus.info,
                   ),
                 );
@@ -324,6 +363,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
 
               return _ProcessionBottomSheet(
                 tracking: tracking,
+                trailCount: state.trailPoints.length,
                 onClose: () =>
                     context.read<TrackingCubit>().selectProcession(null),
               );
@@ -332,10 +372,20 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
         ],
       ),
 
-      // Zoom controls FAB
+      // Map control actions FAB
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Map Style Toggle Button
+          FloatingActionButton.small(
+            heroTag: 'map_style',
+            tooltip: 'Stile Mappa',
+            onPressed: () => _showMapStyleSheet(context),
+            child: const Icon(Icons.layers_rounded),
+          ),
+          const SizedBox(height: 8),
+
+          // Zoom in
           FloatingActionButton.small(
             heroTag: 'zoom_in',
             onPressed: () {
@@ -345,6 +395,8 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
             child: const Icon(Icons.add),
           ),
           const SizedBox(height: 8),
+
+          // Zoom out
           FloatingActionButton.small(
             heroTag: 'zoom_out',
             onPressed: () {
@@ -354,19 +406,21 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
             child: const Icon(Icons.remove),
           ),
           const SizedBox(height: 8),
+
+          // Fit all markers
           BlocBuilder<TrackingCubit, TrackingState>(
             builder: (context, state) {
-              if (state.trackingData.isEmpty) {
+              if (state.filteredTrackingData.isEmpty) {
                 return const SizedBox.shrink();
               }
               return FloatingActionButton(
                 heroTag: 'fit_all',
                 onPressed: () {
                   _fitBounds(
-                    state.trackingData.map((t) => t.position).toList(),
+                    state.filteredTrackingData.map((t) => t.position).toList(),
                   );
                 },
-                tooltip: 'Mostra tutte',
+                tooltip: 'Inquadra tutte',
                 child: const Icon(Icons.fit_screen_rounded),
               );
             },
@@ -377,10 +431,55 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
     );
   }
 
-  void _showFilterSheet(BuildContext context) {
+  void _showMapStyleSheet(BuildContext context) {
+    final cubit = context.read<TrackingCubit>();
     showModalBottomSheet(
       context: context,
-      builder: (context) => const _FilterSheet(),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Stile Mappa',
+                  style: Theme.of(sheetContext).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                for (final style in MapTileStyle.values)
+                  ListTile(
+                    title: Text(style.label),
+                    trailing: cubit.state.mapStyle == style
+                        ? const Icon(Icons.check, color: Colors.green)
+                        : null,
+                    onTap: () {
+                      cubit.setMapStyle(style);
+                      Navigator.pop(sheetContext);
+                    },
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFilterSheet(BuildContext context) {
+    final cubit = context.read<TrackingCubit>();
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
+      ),
+      builder: (sheetContext) => _FilterSheet(cubit: cubit),
     );
   }
 }
@@ -413,19 +512,26 @@ class _ProcessionMarker extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 4),
               decoration: BoxDecoration(
                 color: Colors.black87,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
               child: Text(
                 name!,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 10,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-          // Marker
+          // Marker Bubble
           _AnimatedMarkerBubble(color: color, isSelected: isSelected),
         ],
       ),
@@ -452,13 +558,13 @@ class _AnimatedMarkerBubbleState extends State<_AnimatedMarkerBubble>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1400),
       vsync: this,
     )..repeat(reverse: true);
 
     _pulseAnimation = Tween<double>(
       begin: 1.0,
-      end: 1.15,
+      end: 1.18,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
@@ -474,7 +580,7 @@ class _AnimatedMarkerBubbleState extends State<_AnimatedMarkerBubble>
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
-          scale: widget.isSelected ? 1.2 : _pulseAnimation.value,
+          scale: widget.isSelected ? 1.25 : _pulseAnimation.value,
           child: Container(
             width: 44,
             height: 44,
@@ -487,9 +593,9 @@ class _AnimatedMarkerBubbleState extends State<_AnimatedMarkerBubble>
               ),
               boxShadow: [
                 BoxShadow(
-                  color: widget.color.withAlpha(widget.isSelected ? 150 : 80),
+                  color: widget.color.withAlpha(widget.isSelected ? 180 : 100),
                   blurRadius: widget.isSelected ? 16 : 8,
-                  spreadRadius: widget.isSelected ? 4 : 0,
+                  spreadRadius: widget.isSelected ? 4 : 1,
                 ),
               ],
             ),
@@ -507,9 +613,14 @@ class _AnimatedMarkerBubbleState extends State<_AnimatedMarkerBubble>
 
 /// Bottom sheet for selected procession details.
 class _ProcessionBottomSheet extends StatelessWidget {
-  const _ProcessionBottomSheet({required this.tracking, required this.onClose});
+  const _ProcessionBottomSheet({
+    required this.tracking,
+    required this.trailCount,
+    required this.onClose,
+  });
 
-  final dynamic tracking;
+  final TrackingData tracking;
+  final int trailCount;
   final VoidCallback onClose;
 
   @override
@@ -528,7 +639,7 @@ class _ProcessionBottomSheet extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.xl),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withAlpha(40),
+              color: Colors.black.withAlpha(50),
               blurRadius: 20,
               offset: const Offset(0, -4),
             ),
@@ -576,7 +687,9 @@ class _ProcessionBottomSheet extends StatelessWidget {
                             const LiveDot(size: 6),
                             const SizedBox(width: 4),
                             Text(
-                              'In corso ora',
+                              trailCount > 1
+                                  ? 'In corso — $trailCount posizioni tracciate'
+                                  : 'In corso ora',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 color: theme.colorScheme.primary,
                               ),
@@ -593,14 +706,14 @@ class _ProcessionBottomSheet extends StatelessWidget {
                 ],
               ),
             ),
-            // Content
+            // Actions
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
                 children: [
                   Expanded(
-                    child: SecondaryButton(
-                      label: 'Dettagli',
+                    child: PrimaryButton(
+                      label: 'Dettagli Confraternita',
                       icon: Icons.info_outline_rounded,
                       onPressed: () {
                         context.goToConfraternity(
@@ -623,28 +736,122 @@ class _ProcessionBottomSheet extends StatelessWidget {
   }
 }
 
-/// Filter bottom sheet placeholder.
-class _FilterSheet extends StatelessWidget {
-  const _FilterSheet();
+/// Filter bottom sheet with municipality chips and search.
+class _FilterSheet extends StatefulWidget {
+  const _FilterSheet({required this.cubit});
+
+  final TrackingCubit cubit;
+
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController(
+      text: widget.cubit.state.searchQuery,
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final state = widget.cubit.state;
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Filtra processioni', style: theme.textTheme.headlineSmall),
-          const SizedBox(height: AppSpacing.lg),
-          const EmptyState(
-            icon: Icons.filter_list_off_rounded,
-            title: 'Filtri in arrivo',
-            message: 'Questa funzionalità sarà disponibile a breve.',
-          ),
-        ],
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Filtra Processioni',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                if (state.filterMunicipality != null || state.searchQuery.isNotEmpty)
+                  TextButton(
+                    onPressed: () {
+                      widget.cubit.setMunicipalityFilter(null);
+                      widget.cubit.setSearchQuery('');
+                      _searchController.clear();
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Azzera'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Search box
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Cerca per nome...',
+                prefixIcon: const Icon(Icons.search_rounded),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear_rounded),
+                        onPressed: () {
+                          _searchController.clear();
+                          widget.cubit.setSearchQuery('');
+                          setState(() {});
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              ),
+              onChanged: (value) {
+                widget.cubit.setSearchQuery(value);
+                setState(() {});
+              },
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Municipalities
+            Text(
+              'Comune',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Wrap(
+              spacing: 8,
+              children: AppConstants.municipalities.map((municipality) {
+                final isSelected = state.filterMunicipality == municipality;
+                return ChoiceChip(
+                  label: Text(municipality),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    widget.cubit.setMunicipalityFilter(
+                      selected ? municipality : null,
+                    );
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

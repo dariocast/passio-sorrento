@@ -340,3 +340,110 @@ def get_live_tracking():
     
     return jsonify({'data': result, 'error': None})
 
+
+@api_bp.route('/tracking/history/<confraternity_id>', methods=['GET'])
+def get_tracking_history(confraternity_id: str):
+    """Get GPS tracking history for a specific confraternity to render map trail
+    ---
+    tags:
+      - Tracking
+    parameters:
+      - in: path
+        name: confraternity_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+        description: Unique identifier of the confraternity
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          default: 100
+        description: Maximum number of recent positions to return
+    responses:
+      200:
+        description: List of historical GPS positions in chronological order
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TrackingPosition'
+                error:
+                  type: string
+                  nullable: true
+      404:
+        description: Confraternity not found
+    """
+    confraternity = Confraternity.query.get(confraternity_id)
+    if not confraternity:
+        return jsonify({'data': None, 'error': 'Confraternity not found'}), 404
+
+    try:
+        limit = min(int(request.args.get('limit', 100)), 500)
+    except (ValueError, TypeError):
+        limit = 100
+
+    # Fetch last N logs ordered chronologically (oldest first for polyline drawing)
+    recent_logs = (
+        TrackingLog.query.filter_by(confraternity_id=confraternity_id)
+        .order_by(TrackingLog.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+    # Reverse to have chronological order (from start to current point)
+    recent_logs.reverse()
+
+    result = [log.to_dict() for log in recent_logs]
+    return jsonify({'data': result, 'error': None}), 200
+
+
+@api_bp.route('/stats', methods=['GET'])
+def get_server_stats():
+    """Get summary statistics of the system
+    ---
+    tags:
+      - Health
+    responses:
+      200:
+        description: System summary metrics
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    confraternities_count:
+                      type: integer
+                    processions_count:
+                      type: integer
+                    live_processions_count:
+                      type: integer
+                    tracking_logs_count:
+                      type: integer
+                error:
+                  type: string
+                  nullable: true
+    """
+    confraternities_count = Confraternity.query.count()
+    processions_count = Procession.query.count()
+    live_processions_count = Procession.query.filter_by(is_live=True).count()
+    tracking_logs_count = TrackingLog.query.count()
+
+    return jsonify({
+        'data': {
+            'confraternities_count': confraternities_count,
+            'processions_count': processions_count,
+            'live_processions_count': live_processions_count,
+            'tracking_logs_count': tracking_logs_count,
+        },
+        'error': None,
+    }), 200
+
+

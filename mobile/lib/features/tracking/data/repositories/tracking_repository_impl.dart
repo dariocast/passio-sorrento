@@ -32,6 +32,21 @@ class TrackingRepositoryImpl implements TrackingRepository {
   }
 
   @override
+  Future<List<LatLng>> getTrackingHistory(String confraternityId) async {
+    try {
+      final raw = await _remoteDataSource.getTrackingHistory(confraternityId);
+      return raw.map((item) {
+        return LatLng(
+          (item['lat'] as num).toDouble(),
+          (item['lng'] as num).toDouble(),
+        );
+      }).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  @override
   Stream<List<TrackingData>> watchLiveTrackingData() {
     _startPolling();
     return _trackingController.stream;

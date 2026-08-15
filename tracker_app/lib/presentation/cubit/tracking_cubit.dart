@@ -115,6 +115,30 @@ class TrackingCubit extends Cubit<TrackingState> {
     await _configService.saveConfig(newConfig);
   }
 
+  /// Test the server connection and secret.
+  Future<void> testConnection() async {
+    final currentState = state;
+    if (currentState is! TrackingConfigured) return;
+
+    emit(currentState.copyWith(isTestingConnection: true, connectionStatusMessage: 'Verifica in corso...'));
+    try {
+      final confraternities = await _repository!.fetchConfraternities();
+      emit(currentState.copyWith(
+        isTestingConnection: false,
+        confraternities: confraternities.isNotEmpty ? confraternities : currentState.confraternities,
+        isConnectionOk: true,
+        connectionStatusMessage: 'Connessione al server riuscita (${confraternities.length} confraternite)',
+        errorMessage: null,
+      ));
+    } catch (e) {
+      emit(currentState.copyWith(
+        isTestingConnection: false,
+        isConnectionOk: false,
+        connectionStatusMessage: 'Errore di connessione: $e',
+      ));
+    }
+  }
+
   /// Start tracking.
   Future<void> startTracking() async {
     final currentState = state;
@@ -124,7 +148,7 @@ class TrackingCubit extends Cubit<TrackingState> {
 
     if (config.confraternityId.isEmpty) {
       emit(
-        currentState.copyWith(errorMessage: 'Please select a confraternity'),
+        currentState.copyWith(errorMessage: 'Seleziona una confraternita'),
       );
       return;
     }
@@ -132,7 +156,7 @@ class TrackingCubit extends Cubit<TrackingState> {
     if (config.secret.isEmpty) {
       emit(
         currentState.copyWith(
-          errorMessage: 'Please enter the authentication secret',
+          errorMessage: 'Inserisci il secret di autenticazione',
         ),
       );
       return;
@@ -144,7 +168,12 @@ class TrackingCubit extends Cubit<TrackingState> {
       return;
     }
 
-    _locationService.startTracking(intervalSeconds: config.intervalSeconds);
+    _locationService.startTracking(
+      intervalSeconds: config.intervalSeconds,
+      confraternityName: config.confraternityName.isNotEmpty
+          ? config.confraternityName
+          : 'Confraternita',
+    );
 
     _positionSubscription = _locationService.positionStream.listen(
       _onPositionUpdate,

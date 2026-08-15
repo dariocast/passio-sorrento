@@ -1,31 +1,18 @@
-/// HTTP implementation of HomeRepository for real backend communication.
-library;
-
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:http/http.dart' as http;
-
+import '../../../../core/constants/constants.dart';
 import '../../domain/entities/confraternity.dart';
 import '../../domain/entities/procession.dart';
 import '../../domain/repositories/home_repository.dart';
 import '../models/confraternity_model.dart';
 
 /// Implementation of [HomeRepository] that fetches data from the real backend API.
-///
-/// Uses platform-aware base URL:
-/// - Web: `localhost`
-/// - Android emulator: `10.0.2.2` (maps to host localhost)
-/// - iOS simulator/device: `localhost`
 class HomeRepositoryHttp implements HomeRepository {
   HomeRepositoryHttp({http.Client? client}) : _client = client ?? http.Client();
 
   final http.Client _client;
 
-  /// Returns the appropriate base URL based on the platform.
-  String get _baseUrl {
-    return 'http://192.168.1.4:5000/api';
-  }
+  String get _baseUrl => ApiConstants.baseUrl;
 
   @override
   Future<List<Confraternity>> getConfraternities() async {
