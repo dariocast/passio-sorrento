@@ -6,7 +6,7 @@ class ApiConstants {
   ApiConstants._();
 
   /// Base URL for the backend server.
-  static const String baseUrl = 'http://192.168.1.4:5000/api';
+  static const String baseUrl = 'http://192.168.97.2:5000/api';
 
   /// Endpoints.
   static const String confraternities = '/confraternities';

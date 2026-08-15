@@ -19,7 +19,7 @@ class WeatherRemoteDataSource {
   Future<Map<String, dynamic>> getCurrentWeather(String municipality) async {
     final response = await _client.get(
       Uri.parse(
-        '$_baseUrl/weather?q=$municipality,IT&appid=$_apiKey&units=metric',
+        '$_baseUrl/weather?q=$municipality,IT&appid=$_apiKey&units=metric&lang=it',
       ),
     );
 
@@ -34,7 +34,7 @@ class WeatherRemoteDataSource {
   Future<Map<String, dynamic>> getForecast(String municipality) async {
     final response = await _client.get(
       Uri.parse(
-        '$_baseUrl/forecast?q=$municipality,IT&appid=$_apiKey&units=metric',
+        '$_baseUrl/forecast?q=$municipality,IT&appid=$_apiKey&units=metric&lang=it',
       ),
     );
 
