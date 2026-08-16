@@ -80,7 +80,7 @@ mobile/
 │   │   │
 │   │   ├── weather/
 │   │   │   ├── data/
-│   │   │   │   ├── datasources/   # WeatherRemoteDataSource (OpenWeatherMap)
+│   │   │   │   ├── datasources/   # WeatherRemoteDataSource (Open-Meteo live API)
 │   │   │   │   └── repositories/  # WeatherRepositoryImpl
 │   │   │   ├── domain/
 │   │   │   │   ├── entities/      # Weather
@@ -172,7 +172,7 @@ MultiRepositoryProvider(
 |---------|-------|--------------|
 | **Home** | `HomeCubit` | Fetches confraternities, groups by municipality, local caching via `HomeRepositoryCached`, offline fallback |
 | **Tracking** | `TrackingCubit` | Polls `GET /api/tracking/live` every 10s, renders colored markers on `flutter_map`, auto-zoom |
-| **Weather** | `WeatherCubit` | Calls OpenWeatherMap API, municipality tabs, precipitation focus |
+| **Weather** | `WeatherCubit` | Calls Open-Meteo live API, municipality tabs, precipitation focus |
 | **Settings** | `SettingsCubit` | Theme mode toggle via SharedPreferences |
 
 ---
@@ -291,20 +291,9 @@ flutter pub get
 # Run on connected device/emulator
 flutter run
 
-# Run with OpenWeatherMap API key
-flutter run --dart-define=OPENWEATHER_API_KEY=your_key_here
-
 # Analyze code
 flutter analyze
 
 # Run tests
 flutter test
 ```
-
----
-
-## 13. Environment Variables
-
-| Variable | How to Pass | Default |
-|----------|-------------|---------|
-| `OPENWEATHER_API_KEY` | `--dart-define=OPENWEATHER_API_KEY=xxx` | Hardcoded dev key in `main.dart` |

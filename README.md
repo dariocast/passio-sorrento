@@ -97,10 +97,7 @@ See [docs/API_REFERENCE.md](docs/API_REFERENCE.md) for full details.
 | `API_KEY` | `dev-api-key` |
 | `CAPOFILA_SECRET` | `capofila123` |
 
-### Mobile
-| Variable | Usage |
-|----------|-------|
-| `OPENWEATHER_API_KEY` | `flutter run --dart-define=OPENWEATHER_API_KEY=xxx` |
+
 
 ---
 

@@ -147,7 +147,7 @@ class SettingsPage extends StatelessWidget {
           const Divider(height: 1),
           const ListTile(
             title: Text('Mappe e Meteo'),
-            subtitle: Text('OpenStreetMap & OpenWeatherMap'),
+            subtitle: Text('OpenStreetMap & Open-Meteo (Dati live)'),
           ),
         ],
       ),
