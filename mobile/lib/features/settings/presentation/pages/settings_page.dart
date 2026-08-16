@@ -141,8 +141,8 @@ class SettingsPage extends StatelessWidget {
           const Divider(height: 1),
           const ListTile(
             title: Text(AppConstants.appName),
-            subtitle: Text('Tracciamento processioni Penisola Sorrentina'),
-            trailing: Text('v0.3.1', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(AppConstants.taglineIt),
+            trailing: Text('v0.4.0', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
           const Divider(height: 1),
           const ListTile(

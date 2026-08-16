@@ -19,7 +19,13 @@ class AppConstants {
   AppConstants._();
 
   /// App name.
-  static const String appName = 'Holyweek Tracker';
+  static const String appName = 'Passio Sorrento';
+
+  /// Tagline / subtitle (Italian).
+  static const String taglineIt = 'Settimana Santa in Penisola Sorrentina';
+
+  /// Tagline / subtitle (English).
+  static const String taglineEn = 'Holy Week in the Sorrento Peninsula';
 
   /// Default polling interval for live tracking (in seconds).
   static const int trackingPollingIntervalSeconds = 10;

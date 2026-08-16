@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/components/components.dart';
+import '../../../../core/constants/constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/color_utils.dart';
@@ -58,10 +59,11 @@ class _HomePageContentState extends State<_HomePageContent> {
             surfaceTintColor: theme.colorScheme.primary,
             flexibleSpace: FlexibleSpaceBar(
               title: Text(
-                'Settimana Santa',
+                AppConstants.appName,
                 style: theme.textTheme.titleLarge?.copyWith(
                   color: theme.colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
                 ),
               ),
               centerTitle: true,
