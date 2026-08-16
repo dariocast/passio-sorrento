@@ -1,78 +1,78 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Gestione Utenti & Priori{% endblock %}
-{% block page_title %}Gestione Utenti & Priori{% endblock %}
+{% block page_title %}Utenti & Priori{% endblock %}
 {% block page_subtitle %}Crea e gestisci le utenze per i priori delle confraternite e gli amministratori{% endblock %}
 
 {% block header_actions %}
-<a href="{{ url_for('admin.user_create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-md transition-all">
-    <i data-lucide="user-plus" class="w-4 h-4"></i> Crea Nuovo Utente
+<a href="{{ url_for('admin.user_create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors">
+    <i data-lucide="user-plus" class="w-3.5 h-3.5"></i> Crea Nuovo Utente
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden">
+<div class="rounded-xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-900 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+        <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase text-slate-500 font-semibold border-b border-slate-200/80">
                 <tr>
-                    <th class="px-6 py-4">Utente</th>
-                    <th class="px-6 py-4">Ruolo</th>
-                    <th class="px-6 py-4">Confraternita Assegnata</th>
-                    <th class="px-6 py-4">Stato</th>
-                    <th class="px-6 py-4 text-right">Azioni</th>
+                    <th class="px-5 py-3.5">Utente</th>
+                    <th class="px-5 py-3.5">Ruolo</th>
+                    <th class="px-5 py-3.5">Confraternita Assegnata</th>
+                    <th class="px-5 py-3.5">Stato</th>
+                    <th class="px-5 py-3.5 text-right">Azioni</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60">
+            <tbody class="divide-y divide-slate-100">
                 {% for user in users %}
-                <tr class="hover:bg-slate-900/40 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="font-semibold text-slate-100">{{ user.username }}</div>
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5">
+                        <div class="font-semibold text-slate-900">{{ user.username }}</div>
                         {% if user.email %}
-                        <div class="text-xs text-slate-400">{{ user.email }}</div>
+                        <div class="text-[11px] text-slate-400">{{ user.email }}</div>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-5 py-3.5">
                         {% if user.is_superadmin %}
-                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gold-500/10 text-gold-400 border border-gold-500/30">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-900 text-white">
                             SUPERADMIN
                         </span>
                         {% else %}
-                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200">
                             PRIORE
                         </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-slate-300">
+                    <td class="px-5 py-3.5 text-slate-600">
                         {% if user.confraternity %}
                         <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ user.confraternity.color }};"></span>
-                            <span class="font-medium">{{ user.confraternity.name }}</span>
-                            <span class="text-xs text-slate-400">({{ user.confraternity.municipality }})</span>
+                            <span class="w-2.5 h-2.5 rounded-full border border-slate-200" style="background-color: {{ user.confraternity.color }};"></span>
+                            <span class="font-medium text-slate-800">{{ user.confraternity.name }}</span>
+                            <span class="text-slate-400">({{ user.confraternity.municipality }})</span>
                         </div>
                         {% else %}
-                        <span class="text-xs text-slate-500 italic">Accesso globale (nessuna restrizione)</span>
+                        <span class="text-[11px] text-slate-400 italic">Accesso globale</span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-5 py-3.5">
                         {% if user.is_active %}
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Attivo
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Attivo
                         </span>
                         {% else %}
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400">
-                            <span class="w-2 h-2 rounded-full bg-rose-400"></span> Disabilitato
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-rose-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Disabilitato
                         </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Modifica
+                    <td class="px-5 py-3.5 text-right space-x-2">
+                        <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                            Modifica
                         </a>
                         {% if user.id != current_user.id %}
-                        <form action="{{ url_for('admin.user_delete', user_id=user.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare definitivamente l\'utente {{ user.username }}?');">
-                            <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-xs font-medium text-rose-300 border border-rose-800/40 transition-colors">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Elimina
+                        <form action="{{ url_for('admin.user_delete', user_id=user.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare l\'utente {{ user.username }}?');">
+                            <button type="submit" class="px-2.5 py-1 rounded-md text-rose-600 hover:bg-rose-50 font-medium transition-colors">
+                                Elimina
                             </button>
                         </form>
                         {% endif %}

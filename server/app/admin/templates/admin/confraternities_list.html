@@ -6,72 +6,72 @@
 
 {% block header_actions %}
 {% if current_user.is_superadmin %}
-<a href="{{ url_for('admin.confraternity_create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-md transition-all">
-    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nuova Confraternita
+<a href="{{ url_for('admin.confraternity_create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors">
+    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Nuova Confraternita
 </a>
 {% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
     {% for c in confraternities %}
-    <div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden flex flex-col justify-between">
-        <div class="p-6">
-            <!-- Top color bar and municipality -->
-            <div class="flex items-center justify-between gap-3 mb-4">
-                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-gold-400 border border-gold-500/30">
+    <div class="p-5 rounded-xl bg-white border border-slate-200/80 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+        <div>
+            <!-- Top Header with Color & Municipality -->
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-700">
                     📍 {{ c.municipality }}
                 </span>
-                <div class="flex items-center gap-1.5 font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
-                    <span class="w-3 h-3 rounded-full border border-white/20" style="background-color: {{ c.color }};"></span>
+                <div class="flex items-center gap-1.5 font-mono text-xs text-slate-500">
+                    <span class="w-3 h-3 rounded-full border border-slate-200" style="background-color: {{ c.color }};"></span>
                     {{ c.color }}
                 </div>
             </div>
 
             <!-- Confraternity Name -->
-            <h3 class="text-base font-serif font-bold text-slate-100 mb-2">{{ c.name }}</h3>
+            <h3 class="text-xs font-bold text-slate-900 mb-1.5">{{ c.name }}</h3>
 
             <!-- History Snippet -->
-            {% if c.history %}
-            <p class="text-xs text-slate-400 line-clamp-3 mb-4 leading-relaxed">{{ c.history }}</p>
-            {% else %}
-            <p class="text-xs text-slate-500 italic mb-4">Nessun cenno storico inserito.</p>
-            {% endif %}
+            <p class="text-xs text-slate-500 line-clamp-3 mb-3 leading-relaxed">
+                {{ c.history or 'Nessun cenno storico inserito.' }}
+            </p>
+        </div>
 
-            <!-- Stats/Processions -->
-            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between text-xs">
-                <span class="text-slate-400">Processioni collegate:</span>
-                <span class="font-bold text-slate-200">{{ c.processions|length }} eventi</span>
+        <div>
+            <!-- Info Strip -->
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs mb-3">
+                <span class="text-slate-500">Processioni collegate:</span>
+                <span class="font-semibold text-slate-900">{{ c.processions|length }}</span>
             </div>
 
             {% if current_user.is_superadmin or current_user.confraternity_id == c.id %}
-            <div class="mt-3 p-3 rounded-xl bg-slate-900/50 border border-slate-800/60 flex items-center justify-between text-xs">
-                <span class="text-slate-400 flex items-center gap-1">
-                    <i data-lucide="key" class="w-3.5 h-3.5 text-gold-400"></i> Secret Tracker:
+            <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200/80 flex items-center justify-between text-xs mb-3 font-mono">
+                <span class="text-slate-500 font-sans text-[11px] flex items-center gap-1">
+                    <i data-lucide="key" class="w-3.5 h-3.5 text-slate-400"></i> Secret:
                 </span>
-                <span class="font-mono text-xs font-bold text-emerald-400">{{ c.capofila_secret or 'capofila123' }}</span>
+                <span class="font-bold text-slate-900">{{ c.capofila_secret or 'non impostato' }}</span>
             </div>
             {% endif %}
-        </div>
 
-        <!-- Card Footer Actions -->
-        <div class="px-6 py-4 bg-slate-900/60 border-t border-slate-800/80 flex items-center justify-between">
-            <a href="{{ url_for('admin.confraternity_edit', confraternity_id=c.id) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-400 hover:text-gold-300">
-                <i data-lucide="edit" class="w-3.5 h-3.5"></i> Modifica Scheda
-            </a>
+            <!-- Actions -->
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <a href="{{ url_for('admin.confraternity_edit', confraternity_id=c.id) }}" class="text-xs font-semibold text-slate-900 hover:text-slate-700 flex items-center gap-1">
+                    <i data-lucide="edit" class="w-3.5 h-3.5"></i> Modifica
+                </a>
 
-            {% if current_user.is_superadmin %}
-            <form action="{{ url_for('admin.confraternity_delete', confraternity_id=c.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare la confraternita {{ c.name }} e tutte le processioni collegate?');">
-                <button type="submit" class="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors">
-                    Elimina
-                </button>
-            </form>
-            {% endif %}
+                {% if current_user.is_superadmin %}
+                <form action="{{ url_for('admin.confraternity_delete', confraternity_id=c.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare la confraternita {{ c.name }}?');">
+                    <button type="submit" class="text-xs font-medium text-rose-600 hover:text-rose-700 transition-colors">
+                        Elimina
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </div>
     </div>
     {% else %}
-    <div class="col-span-3 p-8 rounded-2xl bg-slate-950 border border-slate-800 text-center text-slate-400">
-        Nessuna confraternita trovata.
+    <div class="col-span-3 p-8 rounded-xl bg-white border border-slate-200 text-center text-slate-400 text-xs">
+        Nessuna confraternita registrata.
     </div>
     {% endfor %}
 </div>

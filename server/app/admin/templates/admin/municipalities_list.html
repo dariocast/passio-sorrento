@@ -1,64 +1,64 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Gestione Comuni & Meteo GPS{% endblock %}
+{% block title %}Comuni & Meteo GPS{% endblock %}
 {% block page_title %}Comuni & Coordinate GPS{% endblock %}
 {% block page_subtitle %}Gestisci i comuni della Penisola e le coordinate geografiche usate per le previsioni meteo live nell'app{% endblock %}
 
 {% block header_actions %}
-<a href="{{ url_for('admin.municipality_create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-md transition-all">
-    <i data-lucide="plus-circle" class="w-4 h-4"></i> Aggiungi Nuovo Comune
+<a href="{{ url_for('admin.municipality_create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition-colors">
+    <i data-lucide="plus" class="w-3.5 h-3.5"></i> Aggiungi Comune
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden">
+<div class="rounded-xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-900 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+        <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase text-slate-500 font-semibold border-b border-slate-200/80">
                 <tr>
-                    <th class="px-6 py-4">Ordine</th>
-                    <th class="px-6 py-4">Comune</th>
-                    <th class="px-6 py-4">Coordinate GPS (Lat / Lng)</th>
-                    <th class="px-6 py-4">Confraternite Collegate</th>
-                    <th class="px-6 py-4">Stato</th>
-                    <th class="px-6 py-4 text-right">Azioni</th>
+                    <th class="px-5 py-3.5">Ordine</th>
+                    <th class="px-5 py-3.5">Comune</th>
+                    <th class="px-5 py-3.5">Coordinate GPS (Lat / Lng)</th>
+                    <th class="px-5 py-3.5">Confraternite</th>
+                    <th class="px-5 py-3.5">Stato</th>
+                    <th class="px-5 py-3.5 text-right">Azioni</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60">
+            <tbody class="divide-y divide-slate-100">
                 {% for m in municipalities %}
-                <tr class="hover:bg-slate-900/40 transition-colors">
-                    <td class="px-6 py-4 font-mono text-xs text-slate-400">
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3.5 font-mono text-[11px] text-slate-400">
                         #{{ m.display_order }}
                     </td>
-                    <td class="px-6 py-4 font-bold text-slate-100 flex items-center gap-2">
-                        <span>📍 {{ m.name }}</span>
+                    <td class="px-5 py-3.5 font-semibold text-slate-900">
+                        📍 {{ m.name }}
                     </td>
-                    <td class="px-6 py-4 font-mono text-xs text-sky-400">
+                    <td class="px-5 py-3.5 font-mono text-slate-600">
                         {{ m.latitude|round(4) }}° N, {{ m.longitude|round(4) }}° E
                     </td>
-                    <td class="px-6 py-4 text-slate-300">
-                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                    <td class="px-5 py-3.5 text-slate-600">
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700">
                             {{ m.confraternities|length }} confraternite
                         </span>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-5 py-3.5">
                         {% if m.is_active %}
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Visibile in App
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Visibile in App
                         </span>
                         {% else %}
-                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400">
-                            <span class="w-2 h-2 rounded-full bg-rose-400"></span> Nascosto
+                        <span class="inline-flex items-center gap-1.5 text-[11px] font-medium text-rose-700">
+                            <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> Nascosto
                         </span>
                         {% endif %}
                     </td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                        <a href="{{ url_for('admin.municipality_edit', municipality_id=m.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors">
-                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Modifica
+                    <td class="px-5 py-3.5 text-right space-x-2">
+                        <a href="{{ url_for('admin.municipality_edit', municipality_id=m.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors">
+                            Modifica
                         </a>
                         <form action="{{ url_for('admin.municipality_delete', municipality_id=m.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare il comune {{ m.name }}?');">
-                            <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-xs font-medium text-rose-300 border border-rose-800/40 transition-colors">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Elimina
+                            <button type="submit" class="px-2.5 py-1 rounded-md text-rose-600 hover:bg-rose-50 font-medium transition-colors">
+                                Elimina
                             </button>
                         </form>
                     </td>

@@ -1,45 +1,45 @@
 {% extends "admin/base.html" %}
 
 {% block title %}Log Tracciamento GPS{% endblock %}
-{% block page_title %}Flusso Segnali GPS in Tempo Reale{% endblock %}
-{% block page_subtitle %}Log degli ultimi segnali di geolocalizzazione ricevuti dall'app Passio Tracker{% endblock %}
+{% block page_title %}Log Segnali GPS in Tempo Reale{% endblock %}
+{% block page_subtitle %}Elenco degli ultimi segnali di geolocalizzazione ricevuti dall'app Passio Tracker{% endblock %}
 
 {% block content %}
-<div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden">
+<div class="rounded-xl bg-white border border-slate-200/80 shadow-xs overflow-hidden">
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-slate-900 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+        <table class="w-full text-left text-xs text-slate-700">
+            <thead class="bg-slate-50 text-[11px] uppercase text-slate-500 font-semibold border-b border-slate-200/80">
                 <tr>
-                    <th class="px-6 py-4">ID Segnale</th>
-                    <th class="px-6 py-4">Confraternita & Luogo</th>
-                    <th class="px-6 py-4">Latitudine</th>
-                    <th class="px-6 py-4">Longitudine</th>
-                    <th class="px-6 py-4">Timestamp (UTC)</th>
+                    <th class="px-5 py-3.5">ID</th>
+                    <th class="px-5 py-3.5">Confraternita & Luogo</th>
+                    <th class="px-5 py-3.5">Latitudine</th>
+                    <th class="px-5 py-3.5">Longitudine</th>
+                    <th class="px-5 py-3.5">Timestamp (UTC)</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800/60 font-mono text-xs">
+            <tbody class="divide-y divide-slate-100 font-mono text-[11px]">
                 {% for log in logs %}
-                <tr class="hover:bg-slate-900/40 transition-colors">
-                    <td class="px-6 py-3.5 text-slate-500 font-mono">
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="px-5 py-3 text-slate-400">
                         #{{ log.id }}
                     </td>
-                    <td class="px-6 py-3.5 font-sans font-medium text-slate-100 flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ log.confraternity.color }};"></span>
+                    <td class="px-5 py-3 font-sans text-xs font-medium text-slate-900 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full border border-slate-200" style="background-color: {{ log.confraternity.color }};"></span>
                         {{ log.confraternity.name }} ({{ log.confraternity.municipality }})
                     </td>
-                    <td class="px-6 py-3.5 text-sky-400">
+                    <td class="px-5 py-3 text-slate-700">
                         {{ log.latitude|round(6) }}°
                     </td>
-                    <td class="px-6 py-3.5 text-sky-400">
+                    <td class="px-5 py-3 text-slate-700">
                         {{ log.longitude|round(6) }}°
                     </td>
-                    <td class="px-6 py-3.5 font-sans text-slate-400">
+                    <td class="px-5 py-3 font-sans text-slate-500 text-xs">
                         {{ log.timestamp.strftime('%d/%m/%Y %H:%M:%S') }}
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-slate-400 font-sans text-sm">
+                    <td colspan="5" class="px-5 py-8 text-center text-slate-400 font-sans text-xs">
                         Nessun dato di tracciamento presente nel database.
                     </td>
                 </tr>
