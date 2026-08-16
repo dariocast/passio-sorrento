@@ -64,7 +64,7 @@
             <nav class="nav-menu" id="navMenu">
                 <a href="#features" data-i18n="nav_features">Funzionalità</a>
                 <a href="#map-preview" data-i18n="nav_live_map">Mappa Live</a>
-                <a href="#tradition" data-i18n="nav_tradition">I Riti</a>
+                <a href="#confraternities" data-i18n="nav_confraternities">Confraternite</a>
                 <a href="#faq" data-i18n="nav_faq">Domande Frequenti</a>
             </nav>
 
@@ -329,47 +329,41 @@
         </div>
     </section>
 
-    <!-- Tradition & Territorial Showcase (Dynamic Ecosystem) -->
-    <section class="confraternities-section" id="tradition">
+    <!-- Confraternities In-App Guide Showcase -->
+    <section class="confraternities-section" id="confraternities">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag" data-i18n="tradition_tag">Identità & Territorio</span>
-                <h2 class="section-title" data-i18n="tradition_title">I Colori e i Riti della Penisola</h2>
-                <p class="section-desc" data-i18n="tradition_desc">I cortei, gli orari e i percorsi delle Arciconfraternite vengono sincronizzati e aggiornati in tempo reale direttamente dal server centrale.</p>
+                <span class="section-tag" data-i18n="conf_section_tag">Guida Completa</span>
+                <h2 class="section-title" data-i18n="conf_section_title">Cosa trovi nell'App sulle Confraternite</h2>
+                <p class="section-desc" data-i18n="conf_section_desc">Tutte le informazioni storiche, i percorsi e i programmi ufficiali raccolti in schede dedicate e sempre aggiornate.</p>
             </div>
 
-            <div class="confraternity-grid">
-                <!-- 1. Gli Incappucciati Neri -->
-                <div class="confraternity-card">
-                    <div class="hood-color-bar morte"></div>
-                    <div class="confraternity-body">
-                        <span class="confraternity-place" data-i18n="rite_black_place">Venerdì Santo Sera</span>
-                        <h3 class="confraternity-name" data-i18n="rite_black_title">La Processione Nera</h3>
-                        <p class="confraternity-habit" data-i18n="rite_black_desc">Il silenzio solenne, i lampioni e il canto struggente del Miserere che accompagnano il Cristo Morto e la Vergine Addolorata.</p>
-                        <span class="procession-badge" data-i18n="rite_badge_live">Live GPS & Itinerario</span>
+            <div class="features-grid">
+                <!-- 1. Schede Storiche & Tradizioni -->
+                <div class="feature-card">
+                    <div class="feature-icon-box gold">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                     </div>
+                    <h3 class="feature-title" data-i18n="conf_card_1_title">Storia & Devozione Secolare</h3>
+                    <p class="feature-text" data-i18n="conf_card_1_text">Approfondisci le origini di ogni Arciconfraternita, i canti polifonici del Miserere, il significato degli abiti e i simboli della Passione.</p>
                 </div>
 
-                <!-- 2. Gli Incappucciati Bianchi -->
-                <div class="confraternity-card">
-                    <div class="hood-color-bar monica"></div>
-                    <div class="confraternity-body">
-                        <span class="confraternity-place" data-i18n="rite_white_place">Giovedì Santo Notte</span>
-                        <h3 class="confraternity-name" data-i18n="rite_white_title">La Processione Bianca</h3>
-                        <p class="confraternity-habit" data-i18n="rite_white_desc">Nel cuore della notte, il corteo bianco attraversa le strade nel sacro silenzio alla ricerca del Figlio e dei Sepolcri.</p>
-                        <span class="procession-badge" data-i18n="rite_badge_live">Live GPS & Itinerario</span>
+                <!-- 2. Itinerari & Mappe Dirette -->
+                <div class="feature-card">
+                    <div class="feature-icon-box primary">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
                     </div>
+                    <h3 class="feature-title" data-i18n="conf_card_2_title">Itinerari & Collegamento Mappa</h3>
+                    <p class="feature-text" data-i18n="conf_card_2_text">Consulta le vie attraversate, gli orari previsti di passaggio nei Sepolcri e passa con un tocco alla visualizzazione GPS in tempo reale.</p>
                 </div>
 
-                <!-- 3. I Riti dei Misteri & Devozione -->
-                <div class="confraternity-card">
-                    <div class="hood-color-bar rosario"></div>
-                    <div class="confraternity-body">
-                        <span class="confraternity-place" data-i18n="rite_devotion_place">Penisola Sorrentina</span>
-                        <h3 class="confraternity-name" data-i18n="rite_devotion_title">I Simboli della Passione</h3>
-                        <p class="confraternity-habit" data-i18n="rite_devotion_desc">I martiri, i lampioni in ottone, i canti polifonici e i simboli penitenziali tramandati intatti da oltre quattro secoli.</p>
-                        <span class="procession-badge" data-i18n="rite_badge_live">Live GPS & Itinerario</span>
+                <!-- 3. Meteo Comune & Ricerca Rapida -->
+                <div class="feature-card">
+                    <div class="feature-icon-box dark">
+                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </div>
+                    <h3 class="feature-title" data-i18n="conf_card_3_title">Filtri & Meteo Integrato</h3>
+                    <p class="feature-text" data-i18n="conf_card_3_text">Trova subito qualsiasi confraternita per nome o comune della Penisola e visualizza istantaneamente le condizioni meteo e l'indice processione.</p>
                 </div>
             </div>
         </div>
