@@ -1,18 +1,16 @@
-# Sorrento Holy Week Tracker (Incappucciati)
+# Passio Sorrento — Settimana Santa in Penisola Sorrentina
 
-A mobile application and backend server to digitize the Holy Week processions experience in the Sorrento Peninsula.
+A complete digital ecosystem (public mobile app, procession GPS tracker app, backend API, and landing page) to experience Holy Week processions in the Sorrento Peninsula.
 
 ## 🏛️ Project Structure
 
 ```
-incappucciati/
-├── mobile/          # Flutter mobile application
-├── server/          # Python Flask backend
-├── docs/            # Project documentation
-│   ├── ARCHITECTURE.md
-│   ├── API_REFERENCE.md
-│   ├── DATABASE.md
-│   └── CONTRIBUTING.md
+passio-sorrento/
+├── landing/         # Modern landing page (HTML5, Vanilla CSS, JS)
+├── mobile/          # Flutter public mobile application (iOS & Android)
+├── tracker_app/     # Flutter procession GPS tracker app (Android foreground service)
+├── server/          # Python Flask backend (REST API, Swagger, Admin UI)
+├── docs/            # Project documentation (Architecture, API Reference, Database)
 ├── CHANGELOG.md
 └── README.md
 ```
