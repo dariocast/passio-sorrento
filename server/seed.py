@@ -4,11 +4,16 @@ Seed script to populate the Passio Sorrento database with real Holy Week data,
 including Municipalities with GPS coordinates, Confraternities, Processions,
 and SuperAdmin / Priore users.
 
+Credentials are generated dynamically or read from environment variables to ensure
+no plain-text secrets are committed to the repository.
+
 Usage: python seed.py
 """
 
+import os
+import secrets
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
 
 from app import create_app, db
@@ -82,7 +87,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Sorrento",
         "coat_of_arms": "/assets/stemmi/morte.png",
         "history": "L'Arciconfraternita della Morte, fondata nel 1606, è una delle più prestigiose della Penisola Sorrentina. I confratelli vestono il tradizionale saio nero e sfilano durante il Venerdì Santo sera portando il Cristo Morto tra i canti del Miserere.",
-        "capofila_secret": "morte2026"
     },
     {
         "id": "conf-santa-monica",
@@ -92,7 +96,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Sorrento",
         "coat_of_arms": "/assets/stemmi/santa_monica.png",
         "history": "L'Arciconfraternita di Santa Monica organizza la suggestiva Processione Bianca del Giovedì Santo notte (alle ore 03:00). I confratelli vestono in saio bianco e mantellina nera alla ricerca dei Sepolcri nel silenzio della notte.",
-        "capofila_secret": "monica2026"
     },
     {
         "id": "conf-addolorata",
@@ -102,7 +105,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Sorrento",
         "coat_of_arms": "/assets/stemmi/addolorata.png",
         "history": "Istituita nel XVII secolo presso la Cattedrale di Sorrento. I confratelli indossano un saio viola e partecipano alla processione penitenziale con i simboli della Passione.",
-        "capofila_secret": "addolorata2026"
     },
     {
         "id": "conf-rosario",
@@ -112,7 +114,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Meta",
         "coat_of_arms": "/assets/stemmi/rosario.png",
         "history": "L'Arciconfraternita del SS. Rosario di Meta è tra le più vive della costiera. I confratelli sfilano con il tradizionale saio rosso il Giovedì Santo sera lungo le strade del borgo marinaro.",
-        "capofila_secret": "rosario2026"
     },
     {
         "id": "conf-sacramento",
@@ -122,7 +123,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Piano di Sorrento",
         "coat_of_arms": "/assets/stemmi/sacramento.png",
         "history": "L'Arciconfraternita del SS. Sacramento di Piano di Sorrento custodisce antiche tradizioni eucaristiche. I confratelli vestono con saio blu e mozzetta azzurra.",
-        "capofila_secret": "sacramento2026"
     },
     {
         "id": "conf-san-giuseppe",
@@ -132,7 +132,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Sant'Agnello",
         "coat_of_arms": "/assets/stemmi/san_giuseppe.png",
         "history": "Con sede nel rione Maiano a Sant'Agnello, i confratelli indossano il caratteristico saio color oro/giallo e organizzano una sentita e solenne processione del Venerdì Santo.",
-        "capofila_secret": "giuseppe2026"
     },
     {
         "id": "conf-annunziata",
@@ -142,7 +141,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Vico Equense",
         "coat_of_arms": "/assets/stemmi/annunziata.png",
         "history": "Tra le più antiche della diocesi, i confratelli vestono in saio celeste e mozzetta bianca lungo i vicoli del centro storico a strapiombo sul mare.",
-        "capofila_secret": "annunziata2026"
     },
     {
         "id": "conf-carmine",
@@ -152,7 +150,6 @@ CONFRATERNITIES_DATA = [
         "municipality": "Massa Lubrense",
         "coat_of_arms": "/assets/stemmi/carmine.png",
         "history": "Nel cuore dell'antica Massa Lubrense, i confratelli in saio marrone e scapolare carmelitano accompagnano la Vergine verso la Marina della Lobra.",
-        "capofila_secret": "carmine2026"
     },
 ]
 
@@ -164,13 +161,13 @@ def create_processions(confraternities: List[Dict[str, Any]]) -> List[Dict[str, 
     for conf in confraternities:
         if conf["id"] == "conf-santa-monica":
             day = "Giovedì Santo (Notte)"
-            exit_time = datetime(2026, 4, 3, 3, 0)   # 03:00 AM notte
-            return_time = datetime(2026, 4, 3, 6, 30) # 06:30 AM alba
+            exit_time = datetime(2026, 4, 3, 3, 0)
+            return_time = datetime(2026, 4, 3, 6, 30)
             route = "Partenza dalla Chiesa di San Vincenzo, Corso Italia, Ospedale, Sepolcri delle Chiese del Centro e rientro all'alba."
         elif conf["id"] == "conf-morte":
             day = "Venerdì Santo (Sera)"
-            exit_time = datetime(2026, 4, 3, 20, 30) # 20:30 PM sera
-            return_time = datetime(2026, 4, 4, 0, 30) # 00:30 AM notte
+            exit_time = datetime(2026, 4, 3, 20, 30)
+            return_time = datetime(2026, 4, 4, 0, 30)
             route = "Chiesa dei Servi di Maria, Via Sersale, Piazza Tasso, Via San Cesareo, Cattedrale dei Santi Filippo e Giacomo e rientro solenne."
         elif conf["id"] == "conf-rosario":
             day = "Giovedì Santo"
@@ -198,15 +195,13 @@ def create_processions(confraternities: List[Dict[str, Any]]) -> List[Dict[str, 
 
 def create_tracking_logs(confraternities: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Create sample GPS logs along real procession routes."""
-    from datetime import timedelta
-    
     tracking_routes = {
         "Sorrento": [
-            (40.6263, 14.3758),  # Duomo
-            (40.6269, 14.3746),  # Corso Italia
-            (40.6258, 14.3755),  # Piazza Tasso
-            (40.6256, 14.3761),  # Via S. Cesareo
-            (40.6237, 14.3769),  # Marina Grande
+            (40.6263, 14.3758),
+            (40.6269, 14.3746),
+            (40.6258, 14.3755),
+            (40.6256, 14.3761),
+            (40.6237, 14.3769),
         ],
         "Meta": [
             (40.6412, 14.4141),
@@ -239,7 +234,7 @@ def create_tracking_logs(confraternities: List[Dict[str, Any]]) -> List[Dict[str
     }
     
     logs = []
-    base_time = datetime.utcnow() - timedelta(hours=1)
+    base_time = datetime.now(timezone.utc) - timedelta(hours=1)
     
     for conf in confraternities:
         municipality = conf["municipality"]
@@ -300,19 +295,23 @@ def seed_database():
         db.session.commit()
         print(f"   ✅ Inserted {len(tracking_logs)} tracking points")
 
-        # 5. Insert SuperAdmin User
-        print("👑 Creating SuperAdmin user...")
+        # 5. Insert SuperAdmin and Priore Users with dynamic passwords
+        print("👑 Creating admin users...")
+        
+        # Generate or read secure passwords
+        superadmin_pwd = os.environ.get("SUPERADMIN_INIT_PWD") or secrets.token_urlsafe(12)
+        priore_morte_pwd = os.environ.get("PRIORE_MORTE_PWD") or secrets.token_urlsafe(10)
+        priore_monica_pwd = os.environ.get("PRIORE_MONICA_PWD") or secrets.token_urlsafe(10)
+
         superadmin = AdminUser(
             username="superadmin",
             email="admin@passiosorrento.it",
             role=AdminUser.ROLE_SUPERADMIN,
             is_active=True
         )
-        superadmin.set_password("adminpassword123")
+        superadmin.set_password(superadmin_pwd)
         db.session.add(superadmin)
 
-        # 6. Insert Priore Users for testing
-        print("👤 Creating Priore users...")
         priore_morte = AdminUser(
             username="priore_morte",
             email="morte@passiosorrento.it",
@@ -320,7 +319,7 @@ def seed_database():
             confraternity_id="conf-morte",
             is_active=True
         )
-        priore_morte.set_password("priore123")
+        priore_morte.set_password(priore_morte_pwd)
         db.session.add(priore_morte)
 
         priore_monica = AdminUser(
@@ -330,14 +329,14 @@ def seed_database():
             confraternity_id="conf-santa-monica",
             is_active=True
         )
-        priore_monica.set_password("priore123")
+        priore_monica.set_password(priore_monica_pwd)
         db.session.add(priore_monica)
 
         db.session.commit()
-        print("   ✅ Users created:")
-        print("      - SuperAdmin: username 'superadmin' / password 'adminpassword123'")
-        print("      - Priore Morte: username 'priore_morte' / password 'priore123'")
-        print("      - Priore Monica: username 'priore_monica' / password 'priore123'")
+        print("   ✅ Users created with dynamic secure credentials:")
+        print(f"      - SuperAdmin:      username 'superadmin'      / password '{superadmin_pwd}'")
+        print(f"      - Priore Morte:    username 'priore_morte'    / password '{priore_morte_pwd}'")
+        print(f"      - Priore Monica:   username 'priore_monica'   / password '{priore_monica_pwd}'")
 
         # Summary
         print("\n📊 Database Summary:")
