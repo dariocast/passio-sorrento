@@ -124,7 +124,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                   // Dynamic tile layer (OSM / Light / Dark)
                   TileLayer(
                     urlTemplate: state.mapStyle.urlTemplate,
-                    userAgentPackageName: 'xyz.dariocast.holyweek',
+                    userAgentPackageName: 'it.passiosorrento.app',
                   ),
 
                   // Procession historical trail / polyline
