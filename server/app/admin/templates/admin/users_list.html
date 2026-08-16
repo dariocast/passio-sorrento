@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Gestione Utenti & Priori{% endblock %}
+{% block page_title %}Gestione Utenti & Priori{% endblock %}
+{% block page_subtitle %}Crea e gestisci le utenze per i priori delle confraternite e gli amministratori{% endblock %}
+
+{% block header_actions %}
+<a href="{{ url_for('admin.user_create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-md transition-all">
+    <i data-lucide="user-plus" class="w-4 h-4"></i> Crea Nuovo Utente
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-900 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+                <tr>
+                    <th class="px-6 py-4">Utente</th>
+                    <th class="px-6 py-4">Ruolo</th>
+                    <th class="px-6 py-4">Confraternita Assegnata</th>
+                    <th class="px-6 py-4">Stato</th>
+                    <th class="px-6 py-4 text-right">Azioni</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/60">
+                {% for user in users %}
+                <tr class="hover:bg-slate-900/40 transition-colors">
+                    <td class="px-6 py-4">
+                        <div class="font-semibold text-slate-100">{{ user.username }}</div>
+                        {% if user.email %}
+                        <div class="text-xs text-slate-400">{{ user.email }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if user.is_superadmin %}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-gold-500/10 text-gold-400 border border-gold-500/30">
+                            SUPERADMIN
+                        </span>
+                        {% else %}
+                        <span class="px-2.5 py-1 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                            PRIORE
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-slate-300">
+                        {% if user.confraternity %}
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full" style="background-color: {{ user.confraternity.color }};"></span>
+                            <span class="font-medium">{{ user.confraternity.name }}</span>
+                            <span class="text-xs text-slate-400">({{ user.confraternity.municipality }})</span>
+                        </div>
+                        {% else %}
+                        <span class="text-xs text-slate-500 italic">Accesso globale (nessuna restrizione)</span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4">
+                        {% if user.is_active %}
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-emerald-400">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400"></span> Attivo
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1.5 text-xs font-medium text-rose-400">
+                            <span class="w-2 h-2 rounded-full bg-rose-400"></span> Disabilitato
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <a href="{{ url_for('admin.user_edit', user_id=user.id) }}" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 transition-colors">
+                            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Modifica
+                        </a>
+                        {% if user.id != current_user.id %}
+                        <form action="{{ url_for('admin.user_delete', user_id=user.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare definitivamente l\'utente {{ user.username }}?');">
+                            <button type="submit" class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-rose-950/40 hover:bg-rose-900/60 text-xs font-medium text-rose-300 border border-rose-800/40 transition-colors">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Elimina
+                            </button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,59 +1,78 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Confraternities{% endblock %}
-{% block page_title %}Confraternities{% endblock %}
+{% block title %}Confraternite{% endblock %}
+{% block page_title %}Arciconfraternite della Penisola{% endblock %}
+{% block page_subtitle %}Elenco delle confraternite, colori dei sai, stemmi e codici di trasmissione GPS{% endblock %}
+
+{% block header_actions %}
+{% if current_user.is_superadmin %}
+<a href="{{ url_for('admin.confraternity_create') }}" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-md transition-all">
+    <i data-lucide="plus-circle" class="w-4 h-4"></i> Nuova Confraternita
+</a>
+{% endif %}
+{% endblock %}
 
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <p class="text-sm text-slate-500">{{ confraternities|length }} total</p>
-    <a href="{{ url_for('admin.confraternity_create') }}"
-        class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
-        <i data-lucide="plus" class="w-4 h-4"></i> Add Confraternity
-    </a>
-</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for c in confraternities %}
+    <div class="rounded-2xl bg-slate-950 border border-slate-800 shadow-xl overflow-hidden flex flex-col justify-between">
+        <div class="p-6">
+            <!-- Top color bar and municipality -->
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-900 text-gold-400 border border-gold-500/30">
+                    📍 {{ c.municipality }}
+                </span>
+                <div class="flex items-center gap-1.5 font-mono text-xs font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">
+                    <span class="w-3 h-3 rounded-full border border-white/20" style="background-color: {{ c.color }};"></span>
+                    {{ c.color }}
+                </div>
+            </div>
 
-<div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-    <table class="w-full text-sm">
-        <thead>
-            <tr class="bg-slate-50 border-b border-slate-200 text-left">
-                <th class="px-5 py-3 font-semibold text-slate-600">Color</th>
-                <th class="px-5 py-3 font-semibold text-slate-600">Name</th>
-                <th class="px-5 py-3 font-semibold text-slate-600">Municipality</th>
-                <th class="px-5 py-3 font-semibold text-slate-600 text-right">Actions</th>
-            </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-100">
-            {% for c in confraternities %}
-            <tr class="hover:bg-slate-50 transition-colors">
-                <td class="px-5 py-3">
-                    <span class="inline-block w-6 h-6 rounded-full border border-slate-200"
-                        style="background-color:{{ c.color }}"></span>
-                </td>
-                <td class="px-5 py-3 font-medium text-slate-900">{{ c.name }}</td>
-                <td class="px-5 py-3 text-slate-600">{{ c.municipality }}</td>
-                <td class="px-5 py-3 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                        <a href="{{ url_for('admin.confraternity_edit', cid=c.id) }}"
-                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:bg-slate-100 transition-colors">
-                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i> Edit
-                        </a>
-                        <form method="POST" action="{{ url_for('admin.confraternity_delete', cid=c.id) }}"
-                            onsubmit="return confirm('Delete {{ c.name|e }}? This will also remove related processions and tracking logs.')">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit"
-                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Delete
-                            </button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
+            <!-- Confraternity Name -->
+            <h3 class="text-base font-serif font-bold text-slate-100 mb-2">{{ c.name }}</h3>
+
+            <!-- History Snippet -->
+            {% if c.history %}
+            <p class="text-xs text-slate-400 line-clamp-3 mb-4 leading-relaxed">{{ c.history }}</p>
             {% else %}
-            <tr>
-                <td colspan="4" class="px-5 py-10 text-center text-slate-400">No confraternities found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <p class="text-xs text-slate-500 italic mb-4">Nessun cenno storico inserito.</p>
+            {% endif %}
+
+            <!-- Stats/Processions -->
+            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800/80 flex items-center justify-between text-xs">
+                <span class="text-slate-400">Processioni collegate:</span>
+                <span class="font-bold text-slate-200">{{ c.processions|length }} eventi</span>
+            </div>
+
+            {% if current_user.is_superadmin or current_user.confraternity_id == c.id %}
+            <div class="mt-3 p-3 rounded-xl bg-slate-900/50 border border-slate-800/60 flex items-center justify-between text-xs">
+                <span class="text-slate-400 flex items-center gap-1">
+                    <i data-lucide="key" class="w-3.5 h-3.5 text-gold-400"></i> Secret Tracker:
+                </span>
+                <span class="font-mono text-xs font-bold text-emerald-400">{{ c.capofila_secret or 'capofila123' }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Card Footer Actions -->
+        <div class="px-6 py-4 bg-slate-900/60 border-t border-slate-800/80 flex items-center justify-between">
+            <a href="{{ url_for('admin.confraternity_edit', confraternity_id=c.id) }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-400 hover:text-gold-300">
+                <i data-lucide="edit" class="w-3.5 h-3.5"></i> Modifica Scheda
+            </a>
+
+            {% if current_user.is_superadmin %}
+            <form action="{{ url_for('admin.confraternity_delete', confraternity_id=c.id) }}" method="POST" class="inline" onsubmit="return confirm('Eliminare la confraternita {{ c.name }} e tutte le processioni collegate?');">
+                <button type="submit" class="text-xs font-medium text-rose-400 hover:text-rose-300 transition-colors">
+                    Elimina
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="col-span-3 p-8 rounded-2xl bg-slate-950 border border-slate-800 text-center text-slate-400">
+        Nessuna confraternita trovata.
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

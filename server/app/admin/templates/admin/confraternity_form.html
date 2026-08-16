@@ -1,67 +1,66 @@
 {% extends "admin/base.html" %}
 
-{% block title %}{{ 'Edit' if is_edit else 'New' }} Confraternity{% endblock %}
-{% block page_title %}{{ 'Edit' if is_edit else 'New' }} Confraternity{% endblock %}
+{% block title %}{{ 'Modifica Confraternita' if is_edit else 'Nuova Confraternita' }}{% endblock %}
+{% block page_title %}{{ 'Modifica Confraternita' if is_edit else 'Crea Nuova Confraternita' }}{% endblock %}
+{% block page_subtitle %}{{ 'Aggiorna storia, colore del saio, stemma e codice trasmettitore' if is_edit else 'Inserisci i dettagli storici e identificativi della confraternita' }}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl">
-    <form method="POST" class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-5">
-        {{ form.hidden_tag() }}
+<div class="max-w-3xl">
+    <div class="p-8 rounded-2xl bg-slate-950 border border-slate-800 shadow-2xl">
+        <form method="POST" class="space-y-6">
+            {{ form.hidden_tag() }}
 
-        <div>
-            <label for="name" class="block text-sm font-medium text-slate-700 mb-1.5">Name <span
-                    class="text-red-500">*</span></label>
-            <input type="text" name="name" id="name" value="{{ form.name.data or '' }}" required maxlength="255"
-                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-            {% if form.name.errors %}<p class="text-xs text-red-600 mt-1">{{ form.name.errors[0] }}</p>{% endif %}
-        </div>
-
-        <div>
-            <label for="color" class="block text-sm font-medium text-slate-700 mb-1.5">Color <span
-                    class="text-red-500">*</span></label>
-            <div class="flex items-center gap-3">
-                <input type="color" id="color_picker" value="{{ form.color.data or '#000000' }}"
-                    class="h-10 w-14 rounded cursor-pointer border border-slate-300"
-                    onchange="document.getElementById('color').value = this.value">
-                <input type="text" name="color" id="color" value="{{ form.color.data or '#000000' }}" required
-                    pattern="^#[0-9A-Fa-f]{3,6}$" maxlength="7"
-                    onchange="document.getElementById('color_picker').value = this.value"
-                    class="w-32 px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Nome Ufficiale Arciconfraternita</label>
+                {{ form.name(class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-gold-500 transition-colors", placeholder="es. Arciconfraternita della Morte ed Orazione") }}
+                {% if form.name.errors %}
+                <p class="mt-1.5 text-xs text-rose-400">{{ form.name.errors[0] }}</p>
+                {% endif %}
             </div>
-            {% if form.color.errors %}<p class="text-xs text-red-600 mt-1">{{ form.color.errors[0] }}</p>{% endif %}
-        </div>
 
-        <div>
-            <label for="municipality" class="block text-sm font-medium text-slate-700 mb-1.5">Municipality <span
-                    class="text-red-500">*</span></label>
-            <input type="text" name="municipality" id="municipality" value="{{ form.municipality.data or '' }}" required
-                maxlength="100"
-                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-            {% if form.municipality.errors %}<p class="text-xs text-red-600 mt-1">{{ form.municipality.errors[0] }}</p>
-            {% endif %}
-        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Comune di Appartenenza</label>
+                    {{ form.municipality_id(class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-gold-500 transition-colors") }}
+                </div>
 
-        <div>
-            <label for="coat_of_arms" class="block text-sm font-medium text-slate-700 mb-1.5">Coat of Arms Path</label>
-            <input type="text" name="coat_of_arms" id="coat_of_arms" value="{{ form.coat_of_arms.data or '' }}"
-                maxlength="500" placeholder="/assets/stemmi/example.png"
-                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition">
-        </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Colore Identificativo (Hex)</label>
+                    <div class="flex items-center gap-3">
+                        {{ form.color(class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-gold-500 transition-colors", placeholder="#5C1A1B") }}
+                        <div class="w-10 h-10 rounded-xl border border-slate-700 shrink-0" style="background-color: {{ form.color.data or '#5C1A1B' }};"></div>
+                    </div>
+                </div>
+            </div>
 
-        <div>
-            <label for="history" class="block text-sm font-medium text-slate-700 mb-1.5">History</label>
-            <textarea name="history" id="history" rows="5"
-                class="w-full px-3.5 py-2.5 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition resize-y">{{ form.history.data or '' }}</textarea>
-        </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Codice Segreto Trasmettitore GPS (Passio Tracker)</label>
+                    {{ form.capofila_secret(class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 font-mono text-sm focus:outline-none focus:border-gold-500 transition-colors") }}
+                    <p class="text-[11px] text-slate-500 mt-1">Parola chiave da inserire nell'app capofila per autenticare l'invio GPS.</p>
+                </div>
 
-        <div class="flex items-center gap-3 pt-2">
-            <button type="submit"
-                class="px-5 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors">
-                {{ 'Update' if is_edit else 'Create' }} Confraternity
-            </button>
-            <a href="{{ url_for('admin.confraternities_list') }}"
-                class="text-sm text-slate-500 hover:text-slate-700 transition-colors">Cancel</a>
-        </div>
-    </form>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">URL / Percorso Stemma</label>
+                    {{ form.coat_of_arms(class="w-full px-4 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-gold-500 transition-colors", placeholder="/static/images/morte.png") }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">Cenni Storici, Abito e Devozione</label>
+                {{ form.history(class="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 text-sm focus:outline-none focus:border-gold-500 transition-colors", rows="6", placeholder="Inserisci la storia secolare dell'Arciconfraternita, le origini cinquecentesche, il coro del Miserere...") }}
+                <p class="text-[11px] text-slate-500 mt-1">Questo testo comparirà nella scheda informativa dell'applicazione mobile.</p>
+            </div>
+
+            <div class="pt-6 border-t border-slate-800 flex items-center justify-end gap-3">
+                <a href="{{ url_for('admin.confraternities_list') }}" class="px-4 py-2.5 rounded-xl text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+                    Annulla
+                </a>
+                <button type="submit" class="px-5 py-2.5 rounded-xl text-xs font-semibold bg-gold-500 hover:bg-gold-600 text-slate-950 shadow-lg transition-all">
+                    {{ 'Salva Modifiche' if is_edit else 'Crea Confraternita' }}
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

@@ -1,4 +1,4 @@
-/// Core constants for the Holyweek Tracker app.
+/// Core constants for the Passio Sorrento app.
 library;
 
 /// API configuration constants.
@@ -12,6 +12,7 @@ class ApiConstants {
   static const String confraternities = '/confraternities';
   static const String processionsLive = '/processions/live';
   static const String trackingLive = '/tracking/live';
+  static const String municipalities = '/municipalities';
 }
 
 /// App-wide constants.
@@ -30,11 +31,13 @@ class AppConstants {
   /// Default polling interval for live tracking (in seconds).
   static const int trackingPollingIntervalSeconds = 10;
 
-  /// Municipalities in the Sorrento Peninsula.
+  /// Default municipalities in the Sorrento Peninsula (fallback when offline).
   static const List<String> municipalities = [
     'Sorrento',
     'Sant\'Agnello',
     'Piano di Sorrento',
     'Meta',
+    'Vico Equense',
+    'Massa Lubrense',
   ];
 }

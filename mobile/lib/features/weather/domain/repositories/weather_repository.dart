@@ -5,6 +5,9 @@ import '../entities/weather.dart';
 
 /// Repository interface for weather data operations.
 abstract class WeatherRepository {
+  /// Gets list of active municipalities.
+  Future<List<String>> getMunicipalities();
+
   /// Gets current weather for a municipality.
   Future<Weather> getCurrentWeather(String municipality);
 

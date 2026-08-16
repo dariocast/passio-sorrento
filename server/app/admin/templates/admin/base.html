@@ -1,101 +1,161 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="it" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Admin{% endblock %} — Holyweek Tracker</title>
+    <title>{% block title %}Portale Gestione{% endblock %} — Passio Sorrento</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
     tailwind.config = {
         theme: {
             extend: {
-                fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] }
+                fontFamily: {
+                    sans: ['Inter', 'system-ui', 'sans-serif'],
+                    serif: ['Cinzel', 'Georgia', 'serif'],
+                },
+                colors: {
+                    burgundy: {
+                        50: '#fdf2f2',
+                        100: '#fde8e8',
+                        700: '#8b2628',
+                        800: '#5C1A1B',
+                        900: '#3d0d0e',
+                    },
+                    gold: {
+                        400: '#f2c94c',
+                        500: '#DAA520',
+                        600: '#B8860B',
+                    }
+                }
             }
         }
     }
     </script>
 </head>
-<body class="h-full font-sans bg-slate-50">
+<body class="h-full font-sans bg-slate-900 text-slate-100 antialiased">
 <div class="flex h-full">
 
-    <!-- Sidebar -->
-    <aside class="w-64 bg-slate-900 text-white flex flex-col fixed inset-y-0 left-0 z-30">
-        <div class="px-6 py-5 border-b border-slate-700/50">
-            <h1 class="text-lg font-semibold tracking-tight">
-                <span class="text-indigo-400">⛪</span> Holyweek Admin
-            </h1>
-            <p class="text-xs text-slate-400 mt-0.5">Tracker Management</p>
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-950 border-r border-slate-800 text-white flex flex-col fixed inset-y-0 left-0 z-30 shadow-2xl">
+        <!-- Brand Header -->
+        <div class="px-6 py-5 border-b border-slate-800/80 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-burgundy-800 border border-gold-500/40 flex items-center justify-center text-gold-400 font-serif text-lg font-bold shadow-inner">
+                ♱
+            </div>
+            <div>
+                <h1 class="text-base font-serif font-bold tracking-wide text-gold-400">Passio Sorrento</h1>
+                <p class="text-xs text-slate-400 font-medium">Portale Amministrativo</p>
+            </div>
         </div>
 
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <!-- Navigation Menu -->
+        <nav class="flex-1 px-3 py-4 space-y-1.5 overflow-y-auto">
             {% set ep = request.endpoint or '' %}
 
             <a href="{{ url_for('admin.dashboard') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-               {{ 'bg-indigo-500/15 text-indigo-400' if ep == 'admin.dashboard' else 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if ep == 'admin.dashboard' else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
                 <i data-lucide="layout-dashboard" class="w-5 h-5"></i> Dashboard
             </a>
+
+            <!-- SuperAdmin Section: Governance -->
+            {% if current_user.is_superadmin %}
+            <div class="pt-3 pb-1 px-3 text-[11px] font-semibold tracking-wider text-gold-500/70 uppercase">
+                Governo & Sistema
+            </div>
+            <a href="{{ url_for('admin.users_list') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if 'user' in ep else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
+                <i data-lucide="users" class="w-4 h-4"></i> Gestione Utenti & Priori
+            </a>
+            <a href="{{ url_for('admin.municipalities_list') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if 'municipalit' in ep else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
+                <i data-lucide="map" class="w-4 h-4"></i> Comuni & Meteo GPS
+            </a>
+            {% endif %}
+
+            <!-- Confraternities & Processions -->
+            <div class="pt-3 pb-1 px-3 text-[11px] font-semibold tracking-wider text-slate-400 uppercase">
+                Riti & Cortei
+            </div>
             <a href="{{ url_for('admin.confraternities_list') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-               {{ 'bg-indigo-500/15 text-indigo-400' if 'confraternit' in ep else 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <i data-lucide="church" class="w-5 h-5"></i> Confraternities
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if 'confraternit' in ep else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
+                <i data-lucide="church" class="w-4 h-4"></i> {{ 'Tutte le Confraternite' if current_user.is_superadmin else 'La Mia Confraternita' }}
             </a>
             <a href="{{ url_for('admin.processions_list') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-               {{ 'bg-indigo-500/15 text-indigo-400' if 'procession' in ep else 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <i data-lucide="calendar" class="w-5 h-5"></i> Processions
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if 'procession' in ep else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
+                <i data-lucide="calendar" class="w-4 h-4"></i> Processioni & Orari
             </a>
             <a href="{{ url_for('admin.tracking_list') }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors
-               {{ 'bg-indigo-500/15 text-indigo-400' if 'tracking' in ep else 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                <i data-lucide="map-pin" class="w-5 h-5"></i> Tracking Logs
+               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all
+               {{ 'bg-burgundy-800 text-gold-400 border border-gold-500/30' if 'tracking' in ep else 'text-slate-300 hover:bg-slate-800/70 hover:text-white' }}">
+                <i data-lucide="navigation-2" class="w-4 h-4"></i> Log GPS Tracciamento
             </a>
 
-            <div class="pt-4 mt-4 border-t border-slate-700/50">
-                <p class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tools</p>
+            {% if current_user.is_superadmin %}
+            <div class="pt-4 mt-2 border-t border-slate-800/60">
                 <a href="{{ url_for('admin.backup') }}"
-                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition-colors">
-                    <i data-lucide="download" class="w-5 h-5"></i> Download Backup
+                   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
+                    <i data-lucide="download" class="w-4 h-4"></i> Backup Database
                 </a>
             </div>
+            {% endif %}
         </nav>
 
-        <div class="px-3 py-4 border-t border-slate-700/50">
-            <div class="flex items-center gap-3 px-3 py-2">
-                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-sm font-semibold">
+        <!-- User Profile Footer -->
+        <div class="px-4 py-4 border-t border-slate-800/80 bg-slate-950">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-full bg-burgundy-800 text-gold-400 border border-gold-500/30 flex items-center justify-center text-sm font-bold shadow">
                     {{ current_user.username[0]|upper }}
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium truncate">{{ current_user.username }}</p>
-                    <p class="text-xs text-slate-400">Admin</p>
+                    <p class="text-sm font-semibold truncate text-slate-100">{{ current_user.username }}</p>
+                    <div class="flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full {{ 'bg-gold-500' if current_user.is_superadmin else 'bg-emerald-400' }}"></span>
+                        <p class="text-[11px] text-slate-400 font-medium">
+                            {{ 'SuperAdmin' if current_user.is_superadmin else (current_user.confraternity.name if current_user.confraternity else 'Priore') }}
+                        </p>
+                    </div>
                 </div>
             </div>
             <a href="{{ url_for('admin.logout') }}"
-               class="flex items-center gap-3 px-3 py-2 mt-1 rounded-lg text-sm text-slate-400 hover:bg-slate-800 hover:text-white transition-colors">
-                <i data-lucide="log-out" class="w-5 h-5"></i> Sign out
+               class="flex items-center justify-center gap-2 px-3 py-1.5 mt-3 rounded-lg text-xs font-medium text-rose-300 bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/30 transition-colors">
+                <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Esci dalla sessione
             </a>
         </div>
     </aside>
 
-    <!-- Main Content -->
-    <main class="flex-1 ml-64 min-h-screen">
-        <header class="bg-white border-b border-slate-200 px-8 py-5">
-            <h2 class="text-xl font-semibold text-slate-900">{% block page_title %}Dashboard{% endblock %}</h2>
-            {% block page_subtitle %}{% endblock %}
+    <!-- Main Content Area -->
+    <main class="flex-1 ml-64 min-h-screen bg-slate-900 flex flex-col">
+        <!-- Top App Bar -->
+        <header class="bg-slate-950/80 backdrop-blur border-b border-slate-800 px-8 py-5 flex items-center justify-between sticky top-0 z-20">
+            <div>
+                <h2 class="text-xl font-bold font-serif text-slate-100">{% block page_title %}Dashboard{% endblock %}</h2>
+                <p class="text-xs text-slate-400 mt-0.5">{% block page_subtitle %}Panoramica del sistema e gestione in tempo reale{% endblock %}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                {% block header_actions %}{% endblock %}
+            </div>
         </header>
 
-        <div class="px-8 py-6">
+        <!-- Flash Messages & Page Body -->
+        <div class="px-8 py-6 flex-1">
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for cat, msg in messages %}
-                <div class="mb-4 px-4 py-3 rounded-lg text-sm flex items-center gap-2
-                    {{ 'bg-emerald-50 text-emerald-700 border border-emerald-200' if cat == 'success' else 'bg-red-50 text-red-700 border border-red-200' }}">
-                    <i data-lucide="{{ 'check-circle' if cat == 'success' else 'alert-circle' }}" class="w-4 h-4 shrink-0"></i>
-                    {{ msg }}
+                <div class="mb-5 px-4 py-3 rounded-xl text-sm flex items-center gap-3 shadow-lg border
+                    {{ 'bg-emerald-950/70 text-emerald-300 border-emerald-800/60' if cat == 'success' else
+                       'bg-sky-950/70 text-sky-300 border-sky-800/60' if cat == 'info' else
+                       'bg-rose-950/70 text-rose-300 border-rose-800/60' }}">
+                    <i data-lucide="{{ 'check-circle-2' if cat == 'success' else 'info' if cat == 'info' else 'alert-circle' }}" class="w-5 h-5 shrink-0"></i>
+                    <span>{{ msg }}</span>
                 </div>
                 {% endfor %}
             {% endif %}
@@ -103,6 +163,12 @@
 
             {% block content %}{% endblock %}
         </div>
+
+        <!-- Footer -->
+        <footer class="px-8 py-4 border-t border-slate-800/60 text-xs text-slate-400 flex items-center justify-between">
+            <div>Passio Sorrento &bull; Settimana Santa in Penisola Sorrentina</div>
+            <div>Backend API v1.0 &bull; Flask + SQLite</div>
+        </footer>
     </main>
 </div>
 <script>lucide.createIcons();</script>

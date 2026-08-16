@@ -13,6 +13,11 @@ class WeatherRepositoryImpl implements WeatherRepository {
   final WeatherRemoteDataSource _remoteDataSource;
 
   @override
+  Future<List<String>> getMunicipalities() async {
+    return _remoteDataSource.getMunicipalities();
+  }
+
+  @override
   Future<Weather> getCurrentWeather(String municipality) async {
     final data = await _remoteDataSource.getCurrentWeather(municipality);
     return _weatherFromJson(municipality, data);

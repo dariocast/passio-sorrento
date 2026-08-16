@@ -3,21 +3,24 @@ library;
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../../../core/constants/constants.dart';
 
 /// Remote data source for live weather data.
 ///
-/// Uses Open-Meteo (open-source, high-resolution meteorological models,
-/// requiring no API keys) with exact coordinates for Sorrento Peninsula municipalities.
+/// Uses Open-Meteo with exact coordinates for municipalities, dynamically
+/// synchronized with the backend server `/api/municipalities`.
 class WeatherRemoteDataSource {
   WeatherRemoteDataSource({
-    String? apiKey,
+    String? backendUrl,
     http.Client? client,
-  }) : _client = client ?? http.Client();
+  }) : _backendUrl = backendUrl ?? ApiConstants.baseUrl,
+       _client = client ?? http.Client();
 
+  final String _backendUrl;
   final http.Client _client;
 
-  /// Accurate GPS coordinates for Sorrento Peninsula municipalities.
-  static const Map<String, (double, double)> _municipalityCoords = {
+  /// In-memory cache of municipality coordinates.
+  final Map<String, (double, double)> _municipalityCoords = {
     'Sorrento': (40.6263, 14.3758),
     'Sant\'Agnello': (40.6300, 14.3986),
     'Piano di Sorrento': (40.6339, 14.4086),
@@ -25,6 +28,36 @@ class WeatherRemoteDataSource {
     'Vico Equense': (40.6631, 14.4289),
     'Massa Lubrense': (40.6108, 14.3436),
   };
+
+  /// Fetches active municipalities from the backend server.
+  Future<List<String>> getMunicipalities() async {
+    try {
+      final response = await _client
+          .get(Uri.parse('$_backendUrl/municipalities'))
+          .timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body) as List<dynamic>;
+        final names = <String>[];
+        for (final item in data) {
+          if (item is Map<String, dynamic>) {
+            final name = item['name'] as String;
+            final lat = (item['latitude'] as num).toDouble();
+            final lng = (item['longitude'] as num).toDouble();
+            _municipalityCoords[name] = (lat, lng);
+            names.add(name);
+          }
+        }
+        if (names.isNotEmpty) {
+          return names;
+        }
+      }
+    } catch (_) {
+      // Graceful offline fallback
+    }
+
+    return AppConstants.municipalities;
+  }
 
   (double, double) _getCoords(String municipality) {
     return _municipalityCoords[municipality] ?? (40.6263, 14.3758);
@@ -51,7 +84,6 @@ class WeatherRemoteDataSource {
         final weatherCode = (current['weather_code'] as num?)?.toInt() ?? 0;
         final (desc, icon) = _mapWmoCode(weatherCode);
 
-        // Get precipitation probability for current hour if available
         int pop = 0;
         if (hourly != null && hourly['precipitation_probability'] is List) {
           final popList = hourly['precipitation_probability'] as List;
@@ -154,7 +186,7 @@ class WeatherRemoteDataSource {
     return _getFallbackForecast(municipality);
   }
 
-  /// Maps WMO Weather Code to Italian description and standard OpenWeather-compatible icon.
+  /// Maps WMO Weather Code to Italian description and standard icon.
   (String, String) _mapWmoCode(int code) {
     switch (code) {
       case 0:

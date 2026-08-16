@@ -8,7 +8,7 @@ from functools import wraps
 from flask import Blueprint, jsonify, request
 
 from . import db
-from .models import Confraternity, Procession, TrackingLog
+from .models import Municipality, Confraternity, Procession, TrackingLog
 
 api_bp = Blueprint('api', __name__)
 
@@ -51,6 +51,66 @@ def health_check():
                   format: date-time
     """
     return jsonify({'status': 'healthy', 'timestamp': datetime.utcnow().isoformat()})
+
+
+@api_bp.route('/municipalities', methods=['GET'])
+def get_municipalities():
+    """Get all active municipalities
+    ---
+    tags:
+      - Municipalities
+    responses:
+      200:
+        description: List of all active municipalities with GPS coordinates
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  latitude:
+                    type: number
+                  longitude:
+                    type: number
+                  is_active:
+                    type: boolean
+                  display_order:
+                    type: integer
+    """
+    municipalities = Municipality.query.filter_by(is_active=True).order_by(
+        Municipality.display_order, Municipality.name
+    ).all()
+    return jsonify([m.to_dict() for m in municipalities])
+
+
+@api_bp.route('/municipalities/<municipality_id>', methods=['GET'])
+def get_municipality(municipality_id):
+    """Get a single municipality by ID
+    ---
+    tags:
+      - Municipalities
+    parameters:
+      - in: path
+        name: municipality_id
+        schema:
+          type: string
+        required: true
+        description: Unique identifier of the municipality
+    responses:
+      200:
+        description: Single municipality details
+      404:
+        description: Municipality not found
+    """
+    municipality = Municipality.query.get(municipality_id)
+    if not municipality:
+        return jsonify({'error': 'Municipality not found'}), 404
+    return jsonify(municipality.to_dict())
 
 
 @api_bp.route('/confraternities', methods=['GET'])
@@ -255,11 +315,6 @@ def log_tracking_position():
     if not data:
         return jsonify({'data': None, 'error': 'No JSON data provided'}), 400
     
-    # Simple secret-based auth
-    secret = data.get('secret')
-    if secret != CAPOFILA_SECRET:
-        return jsonify({'data': None, 'error': 'Unauthorized - invalid secret'}), 401
-    
     # Validate required fields
     required_fields = ['confraternity_id', 'lat', 'lng']
     for field in required_fields:
@@ -269,11 +324,17 @@ def log_tracking_position():
     confraternity_id = data['confraternity_id']
     latitude = data['lat']
     longitude = data['lng']
+    secret = data.get('secret')
     
     # Validate confraternity exists
     confraternity = Confraternity.query.get(confraternity_id)
     if not confraternity:
         return jsonify({'data': None, 'error': 'Confraternity not found'}), 404
+
+    # Validate secret (supports both confraternity-specific secret and system default)
+    expected_secret = confraternity.capofila_secret or CAPOFILA_SECRET
+    if secret != expected_secret and secret != CAPOFILA_SECRET:
+        return jsonify({'data': None, 'error': 'Unauthorized - invalid secret'}), 401
     
     # Validate coordinates
     if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
