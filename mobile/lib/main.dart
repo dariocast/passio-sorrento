@@ -46,12 +46,9 @@ class HolyweekApp extends StatelessWidget {
     final trackingRemoteDataSource = TrackingRemoteDataSource(
       client: httpClient,
     );
-    // Note: WeatherRemoteDataSource requires an API key - configure in production
+    // Note: WeatherRemoteDataSource requires an API key - pass with --dart-define=OPENWEATHER_API_KEY=xxx
     final weatherRemoteDataSource = WeatherRemoteDataSource(
-      apiKey: const String.fromEnvironment(
-        'OPENWEATHER_API_KEY',
-        defaultValue: 'e6b6d9b20a45455b6b3a7fe7f8d5899c',
-      ),
+      apiKey: const String.fromEnvironment('OPENWEATHER_API_KEY'),
       client: httpClient,
     );
 
