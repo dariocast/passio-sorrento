@@ -1,37 +1,61 @@
 /* ==========================================================================
-   Passio Sorrento — Design System & Stylesheet
+   Passio Sorrento — Design System & Stylesheet (100% Mobile App Aligned)
    ========================================================================== */
 
 :root {
-    /* Color Palette */
-    --color-bg: #0C0B0E;
-    --color-bg-alt: #141318;
-    --color-surface: #1C1A21;
-    --color-surface-hover: #26232D;
-    --color-border: rgba(212, 175, 55, 0.15);
-    --color-border-subtle: rgba(255, 255, 255, 0.08);
-
-    /* Sacred Accents */
-    --color-crimson: #5C1A22;
-    --color-crimson-dark: #3A080E;
-    --color-gold: #D4AF37;
+    /* === Exact Mobile App Theme Tokens (from AppColors.dart) === */
+    --color-primary: #5C1A1B;
+    --color-primary-light: #8B3A3B;
+    --color-primary-dark: #3D0F10;
+    
+    /* Gold Accents */
+    --color-gold: #DAA520;
+    --color-gold-dark: #B8860B;
     --color-gold-light: #F3E5AB;
-    --color-gold-glow: rgba(212, 175, 55, 0.25);
+    --color-gold-glow: rgba(218, 165, 32, 0.25);
+    
+    /* Purple / Solemn Accents */
+    --color-tertiary: #4A148C;
+    --color-tertiary-light: #7C43BD;
+
+    /* Surfaces (Dark Theme from AppColors) */
+    --color-bg: #111014;
+    --color-bg-alt: #17161B;
+    --color-surface: #1C1B1F;
+    --color-surface-variant: #2E2A2D;
+    --color-surface-container: #252327;
+    --color-surface-container-high: #302E31;
+    --color-surface-hover: #383439;
+    
+    /* Text & Borders */
+    --color-text: #E6E1E5;
+    --color-text-muted: #CAC4D0;
+    --color-border: rgba(218, 165, 32, 0.2);
+    --color-border-subtle: rgba(255, 255, 255, 0.08);
     --color-white: #FFFFFF;
-    --color-text: #E8E6ED;
-    --color-text-muted: #A39FA9;
+    
+    /* Live Status (from AppColors.live) */
+    --color-live: #E53935;
+    --color-live-glow: rgba(229, 57, 53, 0.4);
+
+    /* Municipalities Colors */
+    --color-muni-sorrento: #1976D2;
+    --color-muni-piano: #388E3C;
+    --color-muni-meta: #E64A19;
+    --color-muni-santagnello: #7B1FA2;
+    --color-muni-massa: #0097A7;
 
     /* Typography */
     --font-heading: 'Cinzel', serif;
     --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
-    /* Spacing & Layout */
+    /* Layout & Radius */
     --container-max: 1200px;
     --radius-sm: 8px;
     --radius-md: 14px;
-    --radius-lg: 22px;
+    --radius-lg: 20px;
     --radius-xl: 32px;
-    --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Reset & Base */
@@ -59,26 +83,26 @@ body {
 /* Background Ambient Glows */
 .bg-glow {
     position: absolute;
-    width: 600px;
-    height: 600px;
+    width: 650px;
+    height: 650px;
     border-radius: 50%;
-    filter: blur(140px);
+    filter: blur(150px);
     pointer-events: none;
     z-index: 0;
-    opacity: 0.4;
+    opacity: 0.35;
 }
 
 .bg-glow-1 {
-    top: -100px;
+    top: -120px;
     right: -100px;
-    background: radial-gradient(circle, var(--color-crimson) 0%, transparent 70%);
+    background: radial-gradient(circle, var(--color-primary) 0%, transparent 70%);
 }
 
 .bg-glow-2 {
-    top: 40%;
+    top: 45%;
     left: -200px;
-    background: radial-gradient(circle, var(--color-gold) 0%, transparent 70%);
-    opacity: 0.15;
+    background: radial-gradient(circle, var(--color-gold-dark) 0%, transparent 70%);
+    opacity: 0.18;
 }
 
 /* Layout Utilities */
@@ -96,9 +120,9 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    background: rgba(12, 11, 14, 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    background: rgba(17, 16, 20, 0.85);
     border-bottom: 1px solid var(--color-border-subtle);
     padding: 16px 0;
     transition: var(--transition);
@@ -225,14 +249,14 @@ body {
 }
 
 .btn-gold {
-    background: linear-gradient(135deg, #D4AF37 0%, #AA820A 100%);
+    background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-gold-dark) 100%);
     color: #121008;
     box-shadow: 0 4px 20px var(--color-gold-glow);
 }
 
 .btn-gold:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 8px 25px rgba(218, 165, 32, 0.4);
 }
 
 .btn-dark {
@@ -273,7 +297,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-    padding: 80px 0 100px;
+    padding: 70px 0 90px;
     position: relative;
 }
 
@@ -290,8 +314,8 @@ body {
     gap: 8px;
     padding: 6px 14px;
     border-radius: 20px;
-    background: rgba(92, 26, 34, 0.35);
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    background: rgba(92, 26, 27, 0.4);
+    border: 1px solid var(--color-border);
     color: var(--color-gold-light);
     font-size: 0.85rem;
     font-weight: 600;
@@ -302,8 +326,8 @@ body {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--color-gold);
-    box-shadow: 0 0 10px var(--color-gold);
+    background: var(--color-live);
+    box-shadow: 0 0 10px var(--color-live);
     animation: pulse 1.8s infinite;
 }
 
@@ -319,7 +343,7 @@ body {
     line-height: 1.15;
     font-weight: 700;
     margin-bottom: 20px;
-    background: linear-gradient(180deg, #FFFFFF 40%, #D8D4E2 100%);
+    background: linear-gradient(180deg, #FFFFFF 40%, var(--color-text-muted) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -335,7 +359,7 @@ body {
     display: flex;
     gap: 16px;
     flex-wrap: wrap;
-    margin-bottom: 48px;
+    margin-bottom: 44px;
 }
 
 .hero-cta-group.centered {
@@ -373,7 +397,7 @@ body {
     background: var(--color-border-subtle);
 }
 
-/* Phone Mockup Frame */
+/* Phone Mockup Frame (Refined with actual App Design) */
 .hero-mockup-wrapper {
     display: flex;
     justify-content: center;
@@ -381,11 +405,11 @@ body {
 
 .phone-frame {
     width: 320px;
-    height: 620px;
+    height: 640px;
     background: #18171C;
     border-radius: 46px;
     border: 9px solid #2D2B35;
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(92, 26, 27, 0.4);
     position: relative;
     overflow: hidden;
 }
@@ -405,24 +429,24 @@ body {
 .phone-screen {
     width: 100%;
     height: 100%;
-    background: #0E0D12;
+    background: var(--color-surface-container);
     display: flex;
     flex-direction: column;
     overflow: hidden;
 }
 
 .mockup-app-header {
-    background: rgba(20, 19, 24, 0.9);
-    padding: 12px 16px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--color-primary-dark);
+    padding: 12px 16px 8px;
+    border-bottom: 1px solid rgba(218, 165, 32, 0.2);
 }
 
 .mockup-status-bar {
     display: flex;
     justify-content: space-between;
-    font-size: 0.7rem;
-    color: var(--color-text-muted);
-    margin-bottom: 10px;
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 8px;
     padding-top: 4px;
 }
 
@@ -434,16 +458,17 @@ body {
 
 .mockup-app-title {
     font-family: var(--font-heading);
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--color-white);
 }
 
 .mockup-live-pill {
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 700;
-    color: #4ADE80;
-    background: rgba(74, 222, 128, 0.12);
+    color: #FFF;
+    background: var(--color-live);
+    box-shadow: 0 0 8px var(--color-live-glow);
     padding: 2px 8px;
     border-radius: 12px;
 }
@@ -452,7 +477,7 @@ body {
 .mockup-map {
     flex: 1;
     position: relative;
-    background: #15141B;
+    background: #16151B;
     overflow: hidden;
 }
 
@@ -497,8 +522,8 @@ body {
 
 .pin-white {
     background: #FFFFFF;
-    color: #333333;
-    border-color: #FFFFFF;
+    color: #1A1A1A;
+    border-color: #E5E7EB;
 }
 
 .marker-pulse {
@@ -508,7 +533,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: rgba(212, 175, 55, 0.3);
+    background: var(--color-gold-glow);
     animation: markerPulse 2s infinite;
     z-index: 1;
 }
@@ -523,43 +548,42 @@ body {
 }
 
 .marker-tag {
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(17, 16, 20, 0.9);
     color: var(--color-white);
     font-size: 0.62rem;
     padding: 2px 6px;
     border-radius: 4px;
     margin-top: 4px;
     white-space: nowrap;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-border);
 }
 
 .mockup-bottom-card {
     position: absolute;
-    bottom: 16px;
+    bottom: 56px;
     left: 12px;
     right: 12px;
-    background: rgba(28, 26, 33, 0.92);
-    backdrop-filter: blur(10px);
+    background: var(--color-surface);
     border: 1px solid var(--color-border);
-    border-radius: 16px;
-    padding: 12px;
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
 }
 
 .confraternity-avatar {
-    width: 32px;
-    height: 32px;
-    background: var(--color-crimson);
-    border-radius: 8px;
+    width: 30px;
+    height: 30px;
+    background: var(--color-primary);
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--color-gold);
-    font-size: 0.9rem;
-    margin-right: 10px;
+    font-size: 0.85rem;
+    margin-right: 8px;
 }
 
 .card-left {
@@ -568,29 +592,58 @@ body {
 }
 
 .card-title {
-    font-size: 0.74rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: var(--color-white);
 }
 
 .card-sub {
-    font-size: 0.64rem;
+    font-size: 0.62rem;
     color: var(--color-text-muted);
 }
 
 .card-badge {
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 700;
-    color: #000;
-    background: var(--color-gold);
+    color: #FFF;
+    background: var(--color-live);
     padding: 2px 6px;
     border-radius: 4px;
+}
+
+/* App Bottom Navigation Bar (Real App Replication) */
+.mockup-bottom-nav {
+    height: 48px;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 8px;
+}
+
+.nav-tab-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.58rem;
+    color: var(--color-text-muted);
+    gap: 2px;
+}
+
+.nav-tab-item.active {
+    color: var(--color-gold);
+    font-weight: bold;
+}
+
+.nav-tab-icon {
+    font-size: 0.9rem;
 }
 
 /* Sections Global */
 .section-header {
     text-align: center;
-    max-width: 680px;
+    max-width: 700px;
     margin: 0 auto 60px;
 }
 
@@ -621,7 +674,7 @@ body {
 
 /* Features Grid */
 .features-section {
-    padding: 100px 0;
+    padding: 90px 0;
     background: var(--color-bg-alt);
     border-top: 1px solid var(--color-border-subtle);
     border-bottom: 1px solid var(--color-border-subtle);
@@ -630,7 +683,7 @@ body {
 .features-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 30px;
+    gap: 28px;
 }
 
 .feature-card {
@@ -647,7 +700,7 @@ body {
     transform: translateY(-4px);
     border-color: var(--color-border);
     background: var(--color-surface-hover);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
 }
 
 .feature-icon-box {
@@ -661,13 +714,13 @@ body {
 }
 
 .feature-icon-box.gold {
-    background: rgba(212, 175, 55, 0.12);
+    background: rgba(218, 165, 32, 0.12);
     color: var(--color-gold);
 }
 
-.feature-icon-box.crimson {
-    background: rgba(92, 26, 34, 0.25);
-    color: #F87171;
+.feature-icon-box.primary {
+    background: rgba(92, 26, 27, 0.3);
+    color: #E57373;
 }
 
 .feature-icon-box.dark {
@@ -691,14 +744,14 @@ body {
 
 /* Spotlight Section */
 .spotlight-section {
-    padding: 100px 0;
+    padding: 90px 0;
 }
 
 .spotlight-card {
-    background: linear-gradient(135deg, rgba(92, 26, 34, 0.3) 0%, rgba(28, 26, 33, 0.95) 100%);
+    background: linear-gradient(135deg, rgba(92, 26, 27, 0.35) 0%, var(--color-surface) 100%);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: 60px;
+    padding: 56px;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 50px;
@@ -749,7 +802,7 @@ body {
 
 .live-map-card {
     background: #111016;
-    border: 1px solid rgba(212, 175, 55, 0.3);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: 30px;
     position: relative;
@@ -766,16 +819,16 @@ body {
 .radar-dot {
     width: 12px;
     height: 12px;
-    background: #4ADE80;
+    background: var(--color-live);
     border-radius: 50%;
-    box-shadow: 0 0 12px #4ADE80;
+    box-shadow: 0 0 12px var(--color-live);
 }
 
 .radar-text {
     font-size: 0.8rem;
     font-weight: 700;
     letter-spacing: 1px;
-    color: #4ADE80;
+    color: var(--color-gold);
 }
 
 .live-coords {
@@ -788,17 +841,17 @@ body {
 }
 
 .badge-active {
-    background: var(--color-gold);
-    color: #000;
+    background: var(--color-live);
+    color: #FFF;
     font-size: 0.7rem;
     font-weight: bold;
     padding: 4px 8px;
     border-radius: 6px;
 }
 
-/* Confraternities Grid */
+/* Confraternities Grid (Aligned with seed.py real data) */
 .confraternities-section {
-    padding: 100px 0;
+    padding: 90px 0;
     background: var(--color-bg-alt);
     border-top: 1px solid var(--color-border-subtle);
 }
@@ -827,10 +880,14 @@ body {
     width: 100%;
 }
 
-.hood-color-bar.black { background: #FFFFFF; }
-.hood-color-bar.black-full { background: #000000; border-bottom: 1px solid #333; }
-.hood-color-bar.white-blue { background: #E5E7EB; }
-.hood-color-bar.red { background: #DC2626; }
+.hood-color-bar.morte { background: #000000; border-bottom: 1px solid #333; }
+.hood-color-bar.addolorata { background: #800080; }
+.hood-color-bar.monica { background: #FFFFFF; }
+.hood-color-bar.rosario { background: #FF0000; }
+.hood-color-bar.sacramento { background: #4169E1; }
+.hood-color-bar.giuseppe { background: #DAA520; }
+.hood-color-bar.annunziata { background: #87CEEB; }
+.hood-color-bar.carmine { background: #8B4513; }
 
 .confraternity-body {
     padding: 24px;
@@ -870,7 +927,7 @@ body {
 
 /* FAQ Accordion */
 .faq-section {
-    padding: 100px 0;
+    padding: 90px 0;
 }
 
 .faq-container {
@@ -935,14 +992,14 @@ body {
 
 /* Download Section */
 .download-section {
-    padding: 60px 0 100px;
+    padding: 60px 0 90px;
 }
 
 .download-card {
-    background: radial-gradient(circle at center, rgba(92, 26, 34, 0.6) 0%, rgba(20, 19, 24, 0.95) 100%);
+    background: radial-gradient(circle at center, rgba(92, 26, 27, 0.7) 0%, var(--color-surface) 100%);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
-    padding: 80px 40px;
+    padding: 70px 40px;
     text-align: center;
     box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
 }
@@ -970,16 +1027,16 @@ body {
 
 /* Footer */
 .footer {
-    background: #08070A;
+    background: #0B0A0E;
     border-top: 1px solid var(--color-border-subtle);
-    padding: 80px 0 30px;
+    padding: 70px 0 30px;
 }
 
 .footer-grid {
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
     gap: 60px;
-    margin-bottom: 60px;
+    margin-bottom: 50px;
 }
 
 .footer-tagline {
