@@ -141,25 +141,34 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
                       ],
                     ),
 
-                  // Markers for live processions
+                  // Markers for live processions and user location
                   MarkerLayer(
-                    markers: displayedData.map((tracking) {
-                      final isSelected =
-                          state.selectedProcessionId == tracking.processionId;
-                      return Marker(
-                        point: tracking.position,
-                        width: 65,
-                        height: 95,
-                        child: _ProcessionMarker(
-                          color: ColorUtils.parseHex(tracking.color),
-                          name: tracking.name,
-                          isSelected: isSelected,
-                          onTap: () => context
-                              .read<TrackingCubit>()
-                              .selectProcession(tracking.processionId),
+                    markers: [
+                      if (state.userLocation != null)
+                        Marker(
+                          point: state.userLocation!,
+                          width: 32,
+                          height: 32,
+                          child: const _UserLocationMarker(),
                         ),
-                      );
-                    }).toList(),
+                      ...displayedData.map((tracking) {
+                        final isSelected =
+                            state.selectedProcessionId == tracking.processionId;
+                        return Marker(
+                          point: tracking.position,
+                          width: 65,
+                          height: 95,
+                          child: _ProcessionMarker(
+                            color: ColorUtils.parseHex(tracking.color),
+                            name: tracking.name,
+                            isSelected: isSelected,
+                            onTap: () => context
+                                .read<TrackingCubit>()
+                                .selectProcession(tracking.processionId),
+                          ),
+                        );
+                      }),
+                    ],
                   ),
                 ],
               );
@@ -364,6 +373,7 @@ class _TrackingPageContentState extends State<_TrackingPageContent> {
               return _ProcessionBottomSheet(
                 tracking: tracking,
                 trailCount: state.trailPoints.length,
+                userLocation: state.userLocation,
                 onClose: () =>
                     context.read<TrackingCubit>().selectProcession(null),
               );
@@ -617,16 +627,33 @@ class _ProcessionBottomSheet extends StatelessWidget {
     required this.tracking,
     required this.trailCount,
     required this.onClose,
+    this.userLocation,
   });
 
   final TrackingData tracking;
   final int trailCount;
+  final LatLng? userLocation;
   final VoidCallback onClose;
+
+  String? get _distanceText {
+    if (userLocation == null) return null;
+    const distanceCalc = Distance();
+    final meters = distanceCalc.as(
+      LengthUnit.Meter,
+      userLocation!,
+      tracking.position,
+    );
+    if (meters < 1000) {
+      return '${meters.round()} m da te';
+    }
+    return '${(meters / 1000).toStringAsFixed(1)} km da te';
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final color = ColorUtils.parseHex(tracking.color);
+    final distance = _distanceText;
 
     return Positioned(
       bottom: 0,
@@ -682,18 +709,45 @@ class _ProcessionBottomSheet extends StatelessWidget {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        Row(
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
                           children: [
-                            const LiveDot(size: 6),
-                            const SizedBox(width: 4),
-                            Text(
-                              trailCount > 1
-                                  ? 'In corso — $trailCount posizioni tracciate'
-                                  : 'In corso ora',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const LiveDot(size: 6),
+                                const SizedBox(width: 4),
+                                Text(
+                                  trailCount > 1
+                                      ? 'In corso — $trailCount posizioni'
+                                      : 'In corso ora',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
+                            if (distance != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primaryContainer,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  '📍 $distance',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onPrimaryContainer,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ],
@@ -730,6 +784,36 @@ class _ProcessionBottomSheet extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// User location pulsing marker.
+class _UserLocationMarker extends StatelessWidget {
+  const _UserLocationMarker();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2563EB),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x662563EB),
+            blurRadius: 8,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: const Center(
+        child: Icon(
+          Icons.my_location_rounded,
+          color: Colors.white,
+          size: 16,
         ),
       ),
     );
