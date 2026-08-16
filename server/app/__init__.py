@@ -10,6 +10,23 @@ from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flasgger import Swagger
 
+
+def _load_env(dotenv_path: str = '.env') -> None:
+    """Load key-value pairs from a .env file into os.environ."""
+    if os.path.exists(dotenv_path):
+        with open(dotenv_path, 'r', encoding='utf-8') as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith('#') and '=' in line:
+                    key, val = line.split('=', 1)
+                    key = key.strip()
+                    val = val.strip().strip('\'"')
+                    if key not in os.environ:
+                        os.environ[key] = val
+
+_load_env()
+
+
 # Initialize extensions
 db = SQLAlchemy()
 login_manager = LoginManager()

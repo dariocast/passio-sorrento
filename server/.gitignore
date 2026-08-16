@@ -13,12 +13,15 @@ env/
 # Data
 *.db
 *.sqlite
+instance/
 
 # Distribution
 dist/
 build/
 *.egg-info/
 
-# Secrets
+# Secrets & Environment
 .env
-
+.env.*
+*.env
+!.env.example
