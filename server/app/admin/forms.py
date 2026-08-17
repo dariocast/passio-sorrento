@@ -55,9 +55,18 @@ class ProcessionForm(FlaskForm):
     """Create/Edit procession form."""
     confraternity_id = SelectField('Confraternita', validators=[DataRequired()])
     day = SelectField('Giorno del Rito', choices=[
-        ('Giovedì Santo', 'Giovedì Santo (Notte)'),
-        ('Venerdì Santo', 'Venerdì Santo (Sera)'),
+        ('Venerdì di Passione (Addolorata)', 'Venerdì di Passione (Addolorata)'),
+        ('Domenica delle Palme', 'Domenica delle Palme'),
+        ('Lunedì Santo', 'Lunedì Santo'),
+        ('Martedì Santo', 'Martedì Santo'),
+        ('Mercoledì Santo', 'Mercoledì Santo'),
+        ('Giovedì Santo', 'Giovedì Santo (Pomeriggio/Visita Sepolcri)'),
+        ('Giovedì Santo (Notte)', 'Giovedì Santo (Notte - ore 03:00)'),
+        ('Venerdì Santo (Mattina)', 'Venerdì Santo (Mattina)'),
+        ('Venerdì Santo (Sera)', 'Venerdì Santo (Sera del Cristo Morto)'),
         ('Sabato Santo', 'Sabato Santo'),
+        ('Domenica di Pasqua', 'Domenica di Pasqua (Resurrezione)'),
+        ('Lunedì dell\'Angelo', 'Lunedì dell\'Angelo (Pasquetta)'),
         ('Altro', 'Altro Giorno')
     ], validators=[DataRequired()])
     exit_time = DateTimeField(
