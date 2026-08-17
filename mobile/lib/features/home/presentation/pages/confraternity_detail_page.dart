@@ -1,10 +1,9 @@
-/// Confraternity detail page.
-library;
-
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/components/components.dart';
+import '../../../../core/constants/constants.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/color_utils.dart';
@@ -16,6 +15,14 @@ class ConfraternityDetailPage extends StatelessWidget {
   const ConfraternityDetailPage({super.key, required this.args});
 
   final ConfraternityDetailArgs args;
+
+  String? _resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    final root = ApiConstants.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return '$root$cleanPath';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,22 +78,50 @@ class ConfraternityDetailPage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // Icon with Hero animation
+                    // Icon / Stemma with Hero animation
                     Center(
-                      child: Hero(
-                        tag: 'confraternity_icon_${args.confraternityId}',
-                        child: Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: contrastColor.withAlpha(20),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.church_rounded,
-                            size: 64,
-                            color: contrastColor.withAlpha(100),
-                          ),
-                        ),
+                      child: BlocBuilder<HomeCubit, HomeState>(
+                        builder: (context, state) {
+                          final confraternity = state.confraternities
+                              .where((c) => c.id == args.confraternityId)
+                              .firstOrNull;
+                          final imageUrl = _resolveImageUrl(confraternity?.coatOfArms);
+
+                          return Hero(
+                            tag: 'confraternity_icon_${args.confraternityId}',
+                            child: Container(
+                              width: 88,
+                              height: 88,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: contrastColor.withAlpha(25),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: imageUrl != null
+                                    ? CachedNetworkImage(
+                                        imageUrl: imageUrl,
+                                        fit: BoxFit.contain,
+                                        placeholder: (_, _) => Icon(
+                                          Icons.church_rounded,
+                                          size: 48,
+                                          color: contrastColor.withAlpha(120),
+                                        ),
+                                        errorWidget: (_, _, _) => Icon(
+                                          Icons.church_rounded,
+                                          size: 48,
+                                          color: contrastColor.withAlpha(120),
+                                        ),
+                                      )
+                                    : Icon(
+                                        Icons.church_rounded,
+                                        size: 48,
+                                        color: contrastColor.withAlpha(120),
+                                      ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ],

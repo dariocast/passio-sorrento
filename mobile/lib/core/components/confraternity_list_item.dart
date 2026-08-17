@@ -1,7 +1,9 @@
 /// Enhanced confraternity list item widget.
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../constants/constants.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_theme.dart';
 import '../utils/color_utils.dart';
@@ -16,6 +18,7 @@ class ConfraternityListItem extends StatelessWidget {
     required this.municipality,
     required this.color,
     required this.onTap,
+    this.coatOfArms,
     this.isLive = false,
     this.liveLabel,
     this.subtitle,
@@ -31,6 +34,9 @@ class ConfraternityListItem extends StatelessWidget {
 
   /// Hex color string of the confraternity.
   final String color;
+
+  /// Coat of arms image path or URL.
+  final String? coatOfArms;
 
   /// Tap callback.
   final VoidCallback onTap;
@@ -50,10 +56,19 @@ class ConfraternityListItem extends StatelessWidget {
   /// Long press callback.
   final VoidCallback? onLongPress;
 
+  String? _resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    final root = ApiConstants.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return '$root$cleanPath';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final confraternityColor = ColorUtils.parseHex(color);
+    final imageUrl = _resolveImageUrl(coatOfArms);
 
     return AppCard(
       accentColor: confraternityColor,
@@ -65,10 +80,11 @@ class ConfraternityListItem extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            // Color indicator circle
+            // Color indicator / Stemma avatar
             Container(
               width: 44,
               height: 44,
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: confraternityColor.withAlpha(30),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -78,11 +94,26 @@ class ConfraternityListItem extends StatelessWidget {
                 ),
               ),
               child: Center(
-                child: Icon(
-                  Icons.church_rounded,
-                  color: confraternityColor,
-                  size: 22,
-                ),
+                child: imageUrl != null
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Icon(
+                          Icons.church_rounded,
+                          color: confraternityColor,
+                          size: 22,
+                        ),
+                        errorWidget: (context, url, error) => Icon(
+                          Icons.church_rounded,
+                          color: confraternityColor,
+                          size: 22,
+                        ),
+                      )
+                    : Icon(
+                        Icons.church_rounded,
+                        color: confraternityColor,
+                        size: 22,
+                      ),
               ),
             ),
             const SizedBox(width: AppSpacing.md),

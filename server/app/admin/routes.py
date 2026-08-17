@@ -10,6 +10,7 @@ from flask import (
     render_template, redirect, url_for, flash, request,
     current_app, send_file, abort
 )
+from werkzeug.utils import secure_filename
 from flask_login import login_user, logout_user, login_required, current_user
 
 from . import admin_bp
@@ -313,6 +314,28 @@ def confraternities_list():
     return render_template('admin/confraternities_list.html', confraternities=confraternities)
 
 
+def _save_uploaded_coat_of_arms(file_data) -> str | None:
+    """Save an uploaded image file to static/uploads/stemmi and return web path."""
+    if not file_data or not hasattr(file_data, 'filename') or not file_data.filename:
+        return None
+    
+    filename = secure_filename(file_data.filename)
+    if not filename:
+        return None
+    
+    ext = os.path.splitext(filename)[1].lower()
+    unique_filename = f"stemma_{uuid.uuid4().hex[:10]}{ext}"
+    
+    static_folder = current_app.static_folder or os.path.join(current_app.root_path, 'static')
+    upload_dir = os.path.join(static_folder, 'uploads', 'stemmi')
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, unique_filename)
+    file_data.save(file_path)
+    
+    return f"/static/uploads/stemmi/{unique_filename}"
+
+
 @admin_bp.route('/confraternities/create', methods=['GET', 'POST'])
 @login_required
 @superadmin_required
@@ -327,13 +350,17 @@ def confraternity_create():
         selected_m = Municipality.query.get(form.municipality_id.data) if form.municipality_id.data else None
         municipality_name = selected_m.name if selected_m else (form.municipality.data or 'Sorrento')
 
+        # Handle direct file upload or fallback to manual path
+        uploaded_path = _save_uploaded_coat_of_arms(form.coat_of_arms_file.data)
+        coat_of_arms_path = uploaded_path or form.coat_of_arms.data or None
+
         confraternity = Confraternity(
             id=str(uuid.uuid4()),
             name=form.name.data,
             color=form.color.data,
             municipality_id=form.municipality_id.data if form.municipality_id.data else None,
             municipality=municipality_name,
-            coat_of_arms=form.coat_of_arms.data or None,
+            coat_of_arms=coat_of_arms_path,
             history=form.history.data or None,
             capofila_secret=form.capofila_secret.data or 'capofila123',
         )
@@ -366,7 +393,14 @@ def confraternity_edit(confraternity_id: str):
         confraternity.color = form.color.data
         confraternity.municipality_id = form.municipality_id.data if form.municipality_id.data else None
         confraternity.municipality = municipality_name
-        confraternity.coat_of_arms = form.coat_of_arms.data or None
+        
+        # Handle file upload: if a new file is uploaded, update the coat_of_arms path
+        uploaded_path = _save_uploaded_coat_of_arms(form.coat_of_arms_file.data)
+        if uploaded_path:
+            confraternity.coat_of_arms = uploaded_path
+        elif form.coat_of_arms.data:
+            confraternity.coat_of_arms = form.coat_of_arms.data
+
         confraternity.history = form.history.data or None
         confraternity.capofila_secret = form.capofila_secret.data or 'capofila123'
 

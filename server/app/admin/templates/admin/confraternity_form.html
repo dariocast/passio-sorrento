@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-2xl">
     <div class="p-6 rounded-xl bg-white border border-slate-200/80 shadow-xs">
-        <form method="POST" class="space-y-4">
+        <form method="POST" enctype="multipart/form-data" class="space-y-4">
             {{ form.hidden_tag() }}
 
             <div>
@@ -33,17 +33,39 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Codice Segreto per Passio Tracker</label>
-                    {{ form.capofila_secret(class="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-xs focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors shadow-2xs") }}
-                    <p class="text-[11px] text-slate-400 mt-1">Parola chiave inserita nell'app Android del capofila.</p>
+            <!-- Stemma & Image Upload Section -->
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h4 class="text-xs font-bold text-slate-900">Stemma / Logo della Confraternita</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Carica direttamente l'immagine (PNG, JPG, WebP) o specifica un URL.</p>
+                    </div>
+                    {% if is_edit and confraternity.coat_of_arms %}
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-slate-400">Attuale:</span>
+                        <img src="{{ confraternity.coat_of_arms }}" alt="Stemma" class="w-8 h-8 object-contain rounded border border-slate-200 bg-white p-0.5 shadow-2xs" onerror="this.style.display='none'">
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Percorso Stemma / Immagine</label>
-                    {{ form.coat_of_arms(class="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors shadow-2xs", placeholder="/assets/stemmi/morte.png") }}
+                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Carica File dal tuo Dispositivo</label>
+                    {{ form.coat_of_arms_file(class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-900 file:text-white hover:file:bg-slate-800 file:cursor-pointer") }}
+                    {% if form.coat_of_arms_file.errors %}
+                    <p class="mt-1 text-[11px] text-rose-600">{{ form.coat_of_arms_file.errors[0] }}</p>
+                    {% endif %}
                 </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-700 mb-1">Oppure Percorso / URL Manuale (Opzionale)</label>
+                    {{ form.coat_of_arms(class="w-full px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-900 text-xs font-mono focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors shadow-2xs", placeholder="/assets/stemmi/morte.png o https://...") }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1.5">Codice Segreto per Passio Tracker</label>
+                {{ form.capofila_secret(class="w-full px-3 py-2 rounded-lg bg-white border border-slate-200 text-slate-900 font-mono text-xs focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors shadow-2xs") }}
+                <p class="text-[11px] text-slate-400 mt-1">Parola chiave inserita nell'app Android del capofila per autenticare la trasmissione GPS.</p>
             </div>
 
             <div>

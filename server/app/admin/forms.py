@@ -1,6 +1,7 @@
 """WTForms for Passio Sorrento Admin Portal."""
 
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import (
     StringField, TextAreaField, SelectField, DateTimeField,
     BooleanField, PasswordField, FloatField, IntegerField
@@ -42,7 +43,10 @@ class ConfraternityForm(FlaskForm):
     color = StringField('Colore Identificativo (Hex, es. #5C1A1B)', validators=[DataRequired(), Length(min=4, max=7)])
     municipality_id = SelectField('Comune di Appartenenza', validators=[Optional()])
     municipality = StringField('Nome Comune (Testo)', validators=[Optional(), Length(max=100)])
-    coat_of_arms = StringField('URL / Percorso Stemma', validators=[Optional(), Length(max=500)])
+    coat_of_arms = StringField('URL o Percorso Stemma (Manuale)', validators=[Optional(), Length(max=500)])
+    coat_of_arms_file = FileField('Carica Nuovo File Immagine / Logo', validators=[
+        FileAllowed(['jpg', 'jpeg', 'png', 'webp', 'svg'], 'Formato non supportato. Carica un file JPG, PNG, WebP o SVG.')
+    ])
     history = TextAreaField('Cenni Storici e Devozione', validators=[Optional()])
     capofila_secret = StringField('Codice Segreto Trasmettitore (Passio Tracker)', default='capofila123', validators=[DataRequired(), Length(min=4, max=64)])
 

@@ -1,6 +1,7 @@
 /// Home page widget.
 library;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -548,6 +549,8 @@ class _HeroConfraternityItem extends StatelessWidget {
     final theme = Theme.of(context);
     final confraternityColor = ColorUtils.parseHex(confraternity.color);
 
+    final imageUrl = _resolveConfraternityImageUrl(confraternity.coatOfArms);
+
     return AppCard(
       accentColor: confraternityColor,
       accentPosition: AccentPosition.left,
@@ -565,12 +568,13 @@ class _HeroConfraternityItem extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
-            // Hero-wrapped color indicator
+            // Hero-wrapped color indicator / stemma
             Hero(
               tag: 'confraternity_icon_${confraternity.id}',
               child: Container(
                 width: 44,
                 height: 44,
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: confraternityColor.withAlpha(30),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -580,11 +584,26 @@ class _HeroConfraternityItem extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Icon(
-                    Icons.church_rounded,
-                    color: confraternityColor,
-                    size: 22,
-                  ),
+                  child: imageUrl != null
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.contain,
+                          placeholder: (context, url) => Icon(
+                            Icons.church_rounded,
+                            color: confraternityColor,
+                            size: 22,
+                          ),
+                          errorWidget: (context, url, error) => Icon(
+                            Icons.church_rounded,
+                            color: confraternityColor,
+                            size: 22,
+                          ),
+                        )
+                      : Icon(
+                          Icons.church_rounded,
+                          color: confraternityColor,
+                          size: 22,
+                        ),
                 ),
               ),
             ),
@@ -753,4 +772,12 @@ class _LiveProcessionCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String? _resolveConfraternityImageUrl(String? path) {
+  if (path == null || path.isEmpty) return null;
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+  final root = ApiConstants.baseUrl.replaceAll(RegExp(r'/api/?$'), '');
+  final cleanPath = path.startsWith('/') ? path : '/$path';
+  return '$root$cleanPath';
 }
