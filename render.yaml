@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: passio-sorrento-api
+    runtime: docker
+    dockerfilePath: server/Dockerfile
+    dockerContext: server
+    plan: free
+    region: frankfurt
+    disk:
+      name: passio-sqlite-data
+      mountPath: /app/instance
+      sizeGB: 1
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: API_KEY
+        generateValue: true
+      - key: CAPOFILA_SECRET
+        value: capofila123
+      - key: DATABASE_URL
+        value: sqlite:////app/instance/holyweek.db

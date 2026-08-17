@@ -5,7 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Holyweek</string>
+	<string>Passio Sorrento</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Passio Sorrento utilizza la tua posizione per mostrarti i cortei più vicini e calcolare la distanza dalle processioni sulla mappa live.</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>

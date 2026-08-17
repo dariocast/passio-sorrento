@@ -1,0 +1,73 @@
+name: Test & Deploy Backend Server
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'server/**'
+      - '.github/workflows/deploy-server.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'server/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test & Validate Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: 'server/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          cd server
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Database Seeding Test
+        run: |
+          cd server
+          python seed.py
+
+      - name: Run API Integration Tests
+        run: |
+          cd server
+          python -c "
+          from app import create_app
+          app = create_app({'TESTING': True, 'WTF_CSRF_ENABLED': False})
+          client = app.test_client()
+          res = client.get('/api/health')
+          assert res.status_code == 200
+          res_m = client.get('/api/municipalities')
+          assert res_m.status_code == 200
+          print('✅ Server tests passed successfully')
+          "
+
+  deploy:
+    name: Trigger Cloud Deployment (Render / Webhook)
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to Render Webhook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            echo "🚀 Triggering Render Deploy Hook..."
+            curl -X POST "$RENDER_DEPLOY_HOOK"
+            echo "✅ Deploy triggered successfully!"
+          else
+            echo "ℹ️ RENDER_DEPLOY_HOOK_URL secret not set. Skipping automated webhook (manual deploy or Render git-push sync active)."
+          fi
