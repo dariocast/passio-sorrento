@@ -102,12 +102,12 @@ class ConfraternityDetailPage extends StatelessWidget {
                                     ? CachedNetworkImage(
                                         imageUrl: imageUrl,
                                         fit: BoxFit.contain,
-                                        placeholder: (_, _) => Icon(
+                                        placeholder: (context, url) => Icon(
                                           Icons.church_rounded,
                                           size: 48,
                                           color: contrastColor.withAlpha(120),
                                         ),
-                                        errorWidget: (_, _, _) => Icon(
+                                        errorWidget: (context, url, error) => Icon(
                                           Icons.church_rounded,
                                           size: 48,
                                           color: contrastColor.withAlpha(120),
