@@ -143,6 +143,15 @@ def create_app(config=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-secret-key')
+
+    # Connection pool options for PostgreSQL (prevents connection exhaustion on Free Tier)
+    if 'sqlite' not in db_url:
+        app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+            'pool_size': 2,
+            'max_overflow': 2,
+            'pool_recycle': 300,
+            'pool_pre_ping': True,
+        }
     
     # Override with provided config
     if config:
@@ -173,16 +182,33 @@ def create_app(config=None):
     from .admin import admin_bp
     app.register_blueprint(admin_bp)
     
-    # Create database tables and auto-bootstrap if empty
+    # Create database tables and safely bootstrap initial records if empty
     with app.app_context():
-        db.create_all()
         try:
-            from .models import Municipality
+            db.create_all()
+            from .models import Municipality, Confraternity, Procession, AdminUser
             if Municipality.query.first() is None:
-                # Auto-bootstrap initial dataset
-                import seed
-                seed.seed_database()
+                from seed import MUNICIPALITIES_DATA, CONFRATERNITIES_DATA, create_processions
+                for m in MUNICIPALITIES_DATA:
+                    db.session.add(Municipality(**m))
+                for c in CONFRATERNITIES_DATA:
+                    db.session.add(Confraternity(**c))
+                for p in create_processions(CONFRATERNITIES_DATA):
+                    db.session.add(Procession(**p))
+                
+                # Default admin user
+                superadmin = AdminUser(
+                    username="superadmin",
+                    email="admin@passiosorrento.it",
+                    role=AdminUser.ROLE_SUPERADMIN,
+                    is_active=True,
+                )
+                superadmin.set_password(os.environ.get("SUPERADMIN_INIT_PWD", "adminpassword123"))
+                db.session.add(superadmin)
+                db.session.commit()
+                app.logger.info("Database initialized with initial Holy Week records.")
         except Exception as e:
+            db.session.rollback()
             app.logger.warning(f"Database bootstrap notice: {e}")
     
     return app

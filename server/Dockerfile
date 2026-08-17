@@ -31,4 +31,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
 EXPOSE 5000
 
 # Run with Gunicorn WSGI
-CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 2 --threads 4 --timeout 60 "app:create_app()"
+CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 4 --timeout 60 "app:create_app()"
