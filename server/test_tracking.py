@@ -37,13 +37,15 @@ def test_post_tracking_update(confraternity_id, lat, lng):
         "confraternity_id": confraternity_id,
         "lat": lat,
         "lng": lng,
-        "secret": CAPOFILA_SECRET
     }
     
     response = requests.post(
         f"{BASE_URL}/tracking/log",
         json=payload,
-        headers={"Content-Type": "application/json"}
+        headers={
+            "Content-Type": "application/json",
+            "X-Capofila-Secret": CAPOFILA_SECRET,
+        }
     )
     
     print(f"   Status Code: {response.status_code}")
@@ -60,13 +62,15 @@ def test_post_tracking_invalid_secret(confraternity_id):
         "confraternity_id": confraternity_id,
         "lat": 40.6263,
         "lng": 14.3758,
-        "secret": "wrong_secret"
     }
     
     response = requests.post(
         f"{BASE_URL}/tracking/log",
         json=payload,
-        headers={"Content-Type": "application/json"}
+        headers={
+            "Content-Type": "application/json",
+            "X-Capofila-Secret": "wrong_secret",
+        }
     )
     
     print(f"   Status Code: {response.status_code}")
@@ -104,13 +108,15 @@ def test_post_multiple_updates(confraternity_id):
             "confraternity_id": confraternity_id,
             "lat": lat,
             "lng": lng,
-            "secret": CAPOFILA_SECRET
         }
         
         response = requests.post(
             f"{BASE_URL}/tracking/log",
             json=payload,
-            headers={"Content-Type": "application/json"}
+            headers={
+                "Content-Type": "application/json",
+                "X-Capofila-Secret": CAPOFILA_SECRET,
+            }
         )
         
         if response.status_code == 200:

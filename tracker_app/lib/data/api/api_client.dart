@@ -40,12 +40,14 @@ class ApiClient {
   }) async {
     final response = await _client.post(
       Uri.parse('$baseUrl/tracking/log'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Capofila-Secret': secret,
+      },
       body: jsonEncode({
         'confraternity_id': confraternityId,
         'lat': latitude,
         'lng': longitude,
-        'secret': secret,
       }),
     );
 

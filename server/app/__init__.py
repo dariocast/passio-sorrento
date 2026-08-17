@@ -9,6 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 from flasgger import Swagger
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 
 def _load_env(dotenv_path: str = '.env') -> None:
@@ -31,6 +33,11 @@ _load_env()
 db = SQLAlchemy()
 login_manager = LoginManager()
 csrf = CSRFProtect()
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["120 per minute"],
+    storage_uri="memory://",
+)
 
 # Swagger/OpenAPI configuration
 swagger_config = {
@@ -161,6 +168,7 @@ def create_app(config=None):
     db.init_app(app)
     CORS(app)
     csrf.init_app(app)
+    limiter.init_app(app)
     Swagger(app, config=swagger_config, template=swagger_template)
 
     # Flask-Login setup

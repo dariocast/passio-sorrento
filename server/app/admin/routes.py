@@ -17,7 +17,7 @@ from .forms import (
     LoginForm, UserForm, MunicipalityForm,
     ConfraternityForm, ProcessionForm
 )
-from .. import db
+from .. import db, limiter
 from ..models import AdminUser, Municipality, Confraternity, Procession, TrackingLog
 
 
@@ -41,6 +41,7 @@ def superadmin_required(f):
 # ---------------------------------------------------------------------------
 
 @admin_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per 5 minutes", methods=["POST"])
 def login():
     """Admin login page."""
     if current_user.is_authenticated:

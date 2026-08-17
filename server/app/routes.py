@@ -7,7 +7,7 @@ from datetime import datetime
 from functools import wraps
 from flask import Blueprint, jsonify, request
 
-from . import db
+from . import db, limiter
 from .models import Municipality, Confraternity, Procession, TrackingLog
 
 api_bp = Blueprint('api', __name__)
@@ -257,11 +257,18 @@ CAPOFILA_SECRET = os.environ.get('CAPOFILA_SECRET', 'capofila123')
 
 
 @api_bp.route('/tracking/log', methods=['POST'])
+@limiter.limit("60 per minute")
 def log_tracking_position():
-    """Log a new GPS position for a confraternity
+    """Log a new GPS position for a confraternity (Protected by X-Capofila-Secret header)
     ---
     tags:
       - Tracking
+    parameters:
+      - name: X-Capofila-Secret
+        in: header
+        type: string
+        required: true
+        description: Secret token for the confraternity's tracker device
     requestBody:
       required: true
       content:
@@ -272,7 +279,6 @@ def log_tracking_position():
               - confraternity_id
               - lat
               - lng
-              - secret
             properties:
               confraternity_id:
                 type: string
@@ -287,9 +293,6 @@ def log_tracking_position():
                 format: float
                 minimum: -180
                 maximum: 180
-              secret:
-                type: string
-                description: Capofila device authentication secret
     responses:
       200:
         description: Position logged successfully
@@ -306,12 +309,20 @@ def log_tracking_position():
       400:
         description: Invalid request data
       401:
-        description: Unauthorized - invalid secret
+        description: Unauthorized - missing or invalid capofila secret header
       404:
         description: Confraternity not found
+      429:
+        description: Rate limit exceeded
     """
+    # Extract secret from HTTP header (X-Capofila-Secret or Authorization Bearer)
+    auth_header = request.headers.get('X-Capofila-Secret') or request.headers.get('Authorization', '')
+    secret = auth_header.replace('Bearer ', '').strip()
+
+    if not secret:
+        return jsonify({'data': None, 'error': 'Unauthorized - missing X-Capofila-Secret header'}), 401
+
     data = request.get_json()
-    
     if not data:
         return jsonify({'data': None, 'error': 'No JSON data provided'}), 400
     
@@ -324,7 +335,6 @@ def log_tracking_position():
     confraternity_id = data['confraternity_id']
     latitude = data['lat']
     longitude = data['lng']
-    secret = data.get('secret')
     
     # Validate confraternity exists
     confraternity = Confraternity.query.get(confraternity_id)
@@ -334,7 +344,7 @@ def log_tracking_position():
     # Validate secret (supports both confraternity-specific secret and system default)
     expected_secret = confraternity.capofila_secret or CAPOFILA_SECRET
     if secret != expected_secret and secret != CAPOFILA_SECRET:
-        return jsonify({'data': None, 'error': 'Unauthorized - invalid secret'}), 401
+        return jsonify({'data': None, 'error': 'Unauthorized - invalid capofila secret'}), 401
     
     # Validate coordinates
     if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
