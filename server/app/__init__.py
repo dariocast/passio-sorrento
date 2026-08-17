@@ -181,6 +181,12 @@ def create_app(config=None):
     # Register Admin blueprint
     from .admin import admin_bp
     app.register_blueprint(admin_bp)
+
+    # Root route redirects to Admin Portal / Dashboard
+    @app.route('/')
+    def root_redirect():
+        from flask import redirect, url_for
+        return redirect(url_for('admin.dashboard'))
     
     # Create database tables and safely bootstrap initial records if empty
     with app.app_context():

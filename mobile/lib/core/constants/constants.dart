@@ -6,7 +6,10 @@ class ApiConstants {
   ApiConstants._();
 
   /// Base URL for the backend server.
-  static const String baseUrl = 'http://192.168.97.2:5000/api';
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'https://passio-sorrento-api.onrender.com/api',
+  );
 
   /// Endpoints.
   static const String confraternities = '/confraternities';

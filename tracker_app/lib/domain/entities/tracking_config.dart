@@ -54,7 +54,7 @@ class TrackingConfig {
     confraternityId: '',
     confraternityName: '',
     secret: 'capofila123',
-    serverUrl: 'http://localhost:5000/api',
+    serverUrl: 'https://passio-sorrento-api.onrender.com/api',
     intervalSeconds: 30,
   );
 }
