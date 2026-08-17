@@ -1,0 +1,84 @@
+name: Publish Release Packages (APK & AAB)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Signed Releases & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Configure Android Release Keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mkdir -p /tmp/keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/keystore/release.jks
+          echo "ANDROID_KEYSTORE_PATH=/tmp/keystore/release.jks" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+          echo "ANDROID_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
+
+      # --- Build Public Mobile App ---
+      - name: Build Mobile App (Signed APK & AAB)
+        run: |
+          cd mobile
+          flutter pub get
+          flutter build apk --release --android-skip-build-dependency-validation
+          flutter build appbundle --release --android-skip-build-dependency-validation
+          mkdir -p ../dist
+          cp build/app/outputs/flutter-apk/app-release.apk ../dist/passio-sorrento-mobile.apk
+          cp build/app/outputs/bundle/release/app-release.aab ../dist/passio-sorrento-mobile.aab
+
+      # --- Build Tracker App ---
+      - name: Build Tracker App (Signed APK & AAB)
+        run: |
+          cd tracker_app
+          flutter pub get
+          flutter build apk --release --android-skip-build-dependency-validation
+          flutter build appbundle --release --android-skip-build-dependency-validation
+          cp build/app/outputs/flutter-apk/app-release.apk ../dist/passio-tracker.apk
+          cp build/app/outputs/bundle/release/app-release.aab ../dist/passio-tracker.aab
+
+      - name: Clean up Keystore
+        if: always()
+        run: |
+          rm -rf /tmp/keystore
+
+      # --- Publish GitHub Release ---
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/passio-sorrento-mobile.apk
+            dist/passio-sorrento-mobile.aab
+            dist/passio-tracker.apk
+            dist/passio-tracker.aab
+          generate_release_notes: true
+          draft: false
+          prerelease: false
