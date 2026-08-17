@@ -1,3 +1,10 @@
+databases:
+  - name: passio-postgres
+    plan: free
+    region: frankfurt
+    databaseName: passiodb
+    user: passiouser
+
 services:
   - type: web
     name: passio-sorrento-api
@@ -6,10 +13,6 @@ services:
     dockerContext: server
     plan: free
     region: frankfurt
-    disk:
-      name: passio-sqlite-data
-      mountPath: /app/instance
-      sizeGB: 1
     envVars:
       - key: FLASK_ENV
         value: production
@@ -20,4 +23,6 @@ services:
       - key: CAPOFILA_SECRET
         value: capofila123
       - key: DATABASE_URL
-        value: sqlite:////app/instance/holyweek.db
+        fromDatabase:
+          name: passio-postgres
+          property: connectionString
