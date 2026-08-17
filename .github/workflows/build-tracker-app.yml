@@ -38,6 +38,23 @@ jobs:
         run: |
           cd tracker_app
           flutter analyze lib
+          flutter test
+
+      - name: Decode & Configure Android Release Keystore
+        if: env.HAS_KEYSTORE == 'true'
+        env:
+          HAS_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          mkdir -p /tmp/keystore
+          echo "$KEYSTORE_BASE64" | base64 --decode > /tmp/keystore/release.jks
+          echo "ANDROID_KEYSTORE_PATH=/tmp/keystore/release.jks" >> $GITHUB_ENV
+          echo "ANDROID_KEY_ALIAS=$KEY_ALIAS" >> $GITHUB_ENV
+          echo "ANDROID_KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> $GITHUB_ENV
+          echo "ANDROID_KEY_PASSWORD=$KEY_PASSWORD" >> $GITHUB_ENV
 
       - name: Build Android Release APK
         run: |
@@ -48,6 +65,11 @@ jobs:
         run: |
           cd tracker_app
           flutter build appbundle --release --android-skip-build-dependency-validation
+
+      - name: Clean up Keystore
+        if: always()
+        run: |
+          rm -rf /tmp/keystore
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4

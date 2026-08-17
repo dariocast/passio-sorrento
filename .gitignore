@@ -9,6 +9,12 @@
 .env.*
 !.env.example
 
+# Secrets & Keys
+*.jks
+*.keystore
+key.properties
+**/key.properties
+
 # Build
 dist/
 build/
