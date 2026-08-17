@@ -1,4 +1,4 @@
-package xyz.dariocast.holyweek
+package xyz.dariocast.passiosorrento.tracker
 
 import io.flutter.embedding.android.FlutterActivity
 

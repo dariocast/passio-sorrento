@@ -1,4 +1,4 @@
-package com.example.tracker_app
+package xyz.dariocast.passiosorrento
 
 import io.flutter.embedding.android.FlutterActivity
 

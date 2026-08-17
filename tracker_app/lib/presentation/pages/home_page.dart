@@ -174,6 +174,7 @@ class _HomePageState extends State<HomePage> {
 
     return DropdownButtonFormField<Confraternity>(
       initialValue: selectedConfraternity,
+      isExpanded: true,
       decoration: const InputDecoration(
         labelText: 'Seleziona Confraternita',
         border: OutlineInputBorder(),
@@ -193,10 +194,13 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                c.name,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w500),
+              Expanded(
+                child: Text(
+                  c.name,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
+                ),
               ),
             ],
           ),
