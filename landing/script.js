@@ -2,150 +2,126 @@
    Passio Sorrento — Landing Page Logic & Internationalization
    ========================================================================== */
 
+// Global switcher for Hero Smartphone Mockup
+window.changeHeroScreen = function(src, btn) {
+    const heroImg = document.getElementById('heroMockupImg');
+    if (heroImg) {
+        heroImg.style.opacity = '0.3';
+        heroImg.style.transition = 'opacity 0.2s ease';
+        setTimeout(() => {
+            heroImg.src = src;
+            heroImg.style.opacity = '1';
+        }, 150);
+    }
+    document.querySelectorAll('.phone-tab-btn').forEach(b => b.classList.remove('active'));
+    if (btn) {
+        btn.classList.add('active');
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     // -------------------------------------------------------------------------
     // 1. Multilingual Translations Dictionary (Italian & English)
     // -------------------------------------------------------------------------
     const translations = {
         it: {
+            nav_showcase: "L'Applicazione",
             nav_features: "Funzionalità",
-            nav_live_map: "Mappa Live",
-            nav_confraternities: "Confraternite",
-            nav_faq: "Domande Frequenti",
+            nav_towns: "Comuni",
+            nav_privacy: "Privacy",
             nav_download: "Scarica l'App",
             hero_badge: "Live GPS Tracking • Penisola Sorrentina",
             hero_title: "Vivi la Settimana Santa nel cuore della Penisola Sorrentina.",
-            hero_subtitle: "L'applicazione ufficiale per seguire in tempo reale il corteo degli Incappucciati. Scopri itinerari, orari, previsioni meteo e le secolari Arciconfraternite.",
+            hero_subtitle: "L'applicazione ufficiale per seguire in tempo reale il corteo degli Incappucciati. Scopri itinerari, orari, previsioni meteo e la secolare storia delle Confraternite.",
             btn_available_on: "Disponibile su",
             stat_processions: "Processioni Solenni",
             stat_towns: "Comuni Monitorati",
             stat_live: "Tracciamento Live",
-            mockup_marker_black: "Venerdì Santo (Nera)",
-            mockup_marker_white: "Giovedì Santo (Bianca)",
-            features_tag: "Tecnologia & Tradizione",
+            showcase_tag: "Uno sguardo all'App",
+            showcase_title: "Progettata per fedeli, confratelli e visitatori",
+            showcase_desc: "Interfaccia minimale ed elegante, pensata per una consultazione rapida e chiara anche durante i cortei notturni.",
+            card1_title: "Elenco Confraternite",
+            card1_desc: "Tutti i cortei organizzati per comune, con indicazione dello stato in tempo reale e orari.",
+            card2_title: "Tracciamento GPS",
+            card2_desc: "Posizione in tempo reale del corteo, velocità di marcia e percorso lungo le strade peninsulari.",
+            card3_title: "Storia & Simboli",
+            card3_desc: "Stemma nobiliare, cenni storici, colore del saio e tradizioni secolari di ciascun sodalizio.",
+            card4_title: "Percorso & Tappe",
+            card4_desc: "Itinerario completo via per via con orari di partenza e rientro previsti.",
+            card5_title: "Meteo & Radar",
+            card5_desc: "Previsioni costantemente aggiornate per ciascun comune peninsulare con focus pioggia.",
+            features_tag: "Caratteristiche",
             features_title: "Tutto quello che serve per vivere i Riti Sacri",
             features_desc: "Un connubio perfetto tra la solennità delle tradizioni secolari e la precisione del tracciamento GPS in tempo reale.",
-            feat_1_title: "Tracciamento GPS con Scia Storica",
-            feat_1_text: "Visualizza la posizione esatta del corteo con la scia storica del percorso. Aggiornato ogni 10 secondi per non perdere mai il passaggio.",
-            feat_2_title: "Itinerari & Orari Ufficiali",
-            feat_2_text: "Programma completo di tutte le processioni: orario di uscita dalla chiesa, tappe nei Sepolcri e orario stimato di rientro.",
-            feat_3_title: "Meteo & Indice Processione",
-            feat_3_text: "Previsioni meteo orarie, probabilità di pioggia e calcolo dell'indice di idoneità per sapere con certezza le condizioni delle uscite.",
-            feat_4_title: "Storia & Confraternite",
-            feat_4_text: "Schede storiche dettagliate su ogni Arciconfraternita, il significato degli abiti, dei simboli della Passione e dei cori del Miserere.",
-            feat_5_title: "6 Comuni in una Sola App",
-            feat_5_text: "Copertura completa dell'intera costiera: Sorrento, Sant'Agnello, Piano di Sorrento, Meta, Vico Equense e Massa Lubrense.",
-            feat_6_title: "Funzionamento Offline",
-            feat_6_text: "Tutti i programmi e gli itinerari sono salvati nella memoria del dispositivo e rimangono consultabili anche tra i vicoli storici senza segnale.",
-            spotlight_tag: "Esperienza Live",
-            spotlight_title: "Non domandarti più dov'è il corteo. Guardalo in diretta.",
-            spotlight_desc: "Grazie all'app satellite Passio Tracker utilizzata direttamente dai capofila, le posizioni GPS vengono aggiornate ogni 10 secondi e proiettate su una mappa dettagliata con stile notte ad alto contrasto.",
-            spotlight_pt_1: "Scia luminosa che indica il senso di marcia",
-            spotlight_pt_2: "Distanza in metri rispetto alla tua posizione attuale",
-            spotlight_pt_3: "Differenziazione visiva per colore confraternita",
-            radar_active: "GPS LIVE SIGNAL • PENISOLA SORRENTINA",
-            conf_section_tag: "Guida Completa",
-            conf_section_title: "Cosa trovi nell'App sulle Confraternite",
-            conf_section_desc: "Tutte le informazioni storiche, i percorsi e i programmi ufficiali raccolti in schede dedicate e sempre aggiornate.",
-            conf_card_1_title: "Storia & Devozione Secolare",
-            conf_card_1_text: "Approfondisci le origini di ogni Arciconfraternita, i canti polifonici del Miserere, il significato degli abiti e i simboli della Passione.",
-            conf_card_2_title: "Itinerari & Collegamento Mappa",
-            conf_card_2_text: "Consulta le vie attraversate, gli orari previsti di passaggio nei Sepolcri e passa con un tocco alla visualizzazione GPS in tempo reale.",
-            conf_card_3_title: "Filtri & Meteo Integrato",
-            conf_card_3_text: "Trova subito qualsiasi confraternita per nome o comune della Penisola e visualizza istantaneamente le condizioni meteo e l'indice processione.",
-            faq_tag: "Chiarezza & Supporto",
-            faq_title: "Domande Frequenti",
-            faq_q1: "L'applicazione è gratuita?",
-            faq_a1: "Sì, Passio Sorrento è totalmente gratuita per tutti i cittadini, fedeli e turisti. Non contiene pubblicità invasive.",
-            faq_q2: "Come funziona il tracciamento GPS in tempo reale?",
-            faq_a2: "I capofila delle Confraternite utilizzano l'app di trasmissione 'Passio Tracker' durante il corteo. I dati di geolocalizzazione vengono trasmessi in tempo reale e proiettati istantaneamente sulla mappa dell'app mobile con scia luminosa del percorso.",
-            faq_q3: "L'app funziona anche offline o senza connessione veloce?",
-            faq_a3: "Sì! Tutti gli orari, le schede storiche e gli itinerari ufficiali vengono memorizzati nella memoria del telefono e sono consultabili anche in assenza di segnale.",
-            faq_q4: "L'app è disponibile in lingua inglese per i turisti stranieri?",
-            faq_a4: "Certamente. L'app rileva automaticamente la lingua dello smartphone (italiano o inglese) e adatta tutte le descrizioni, orari e mappe per accogliere al meglio i visitatori internazionali.",
-            dl_title: "Scarica Passio Sorrento",
-            dl_desc: "Porta la solennità e la bellezza della Settimana Santa sempre con te sul tuo smartphone.",
-            footer_tagline: "Settimana Santa in Penisola Sorrentina",
-            footer_desc: "Progetto digitale indipendente dedicato alla salvaguardia, valorizzazione e condivisione dei Riti Pasquali della Penisola Sorrentina.",
-            footer_links_title: "Comuni",
-            footer_app_title: "App"
+            feat1_title: "GPS ad Alta Precisione",
+            feat1_desc: "Aggiornamento automatico costante della testa del corteo direttamente dai trasmettitori dei capofila.",
+            feat2_title: "Guida alle Confraternite",
+            feat2_desc: "Scopri l'origine dei canti del Miserere, il significato dei simboli e la storia dei sodalizi.",
+            feat3_title: "Meteo Dedicato",
+            feat3_desc: "Monitoraggio meteo orario e probabilità di pioggia per pianificare la partecipazione in sicurezza.",
+            towns_tag: "Territorio",
+            towns_title: "I Comuni della Penisola Sorrentina",
+            towns_desc: "Tutti i riti e le processioni solenni monitorati nei sei comuni peninsulari.",
+            cta_title: "Scarica Passio Sorrento",
+            cta_desc: "L'applicazione è gratuita e disponibile per tutti i dispositivi Android e iOS."
         },
         en: {
+            nav_showcase: "The App",
             nav_features: "Features",
-            nav_live_map: "Live Map",
-            nav_confraternities: "Confraternities",
-            nav_faq: "FAQ",
+            nav_towns: "Municipalities",
+            nav_privacy: "Privacy",
             nav_download: "Download App",
             hero_badge: "Live GPS Tracking • Sorrento Peninsula",
             hero_title: "Experience Holy Week in the heart of Sorrento Peninsula.",
             hero_subtitle: "The official application to follow the hooded processions in real time. Discover routes, timetables, weather forecasts, and centuries-old Archconfraternities.",
             btn_available_on: "Available on",
             stat_processions: "Solemn Processions",
-            stat_towns: "Municipalities Covered",
-            stat_live: "Live GPS Tracking",
-            mockup_marker_black: "Good Friday (Black)",
-            mockup_marker_white: "Holy Thursday (White)",
-            features_tag: "Technology & Tradition",
+            stat_towns: "Towns Covered",
+            stat_live: "Live GPS",
+            showcase_tag: "App Preview",
+            showcase_title: "Designed for visitors, pilgrims and locals",
+            showcase_desc: "Clean and minimal interface, designed for swift and clear navigation even during night processions.",
+            card1_title: "Confraternities List",
+            card1_desc: "All processions organized by municipality, with real-time status indicators and schedules.",
+            card2_title: "Live GPS Map",
+            card2_desc: "Real-time position of the procession along the historic streets of the Sorrento Peninsula.",
+            card3_title: "History & Emblems",
+            card3_desc: "Coats of arms, historical devotion, robe colors, and ancient traditions of each brotherhood.",
+            card4_title: "Routes & Stops",
+            card4_desc: "Street-by-street itineraries with departure, altar visits, and estimated return times.",
+            card5_title: "Weather & Radar",
+            card5_desc: "Hourly weather forecasts and rain radar for each peninsula town.",
+            features_tag: "Features",
             features_title: "Everything you need to experience Holy Week",
             features_desc: "A harmonious blend of centuries-old sacred rites and real-time live GPS precision.",
-            feat_1_title: "Real-Time GPS with Path Trail",
-            feat_1_text: "Follow the exact position of the procession with historical path trails. Updated every 10 seconds so you never miss the solemn passing.",
-            feat_2_title: "Official Schedules & Routes",
-            feat_2_text: "Complete schedules for every procession: departure times, church altar stations, and estimated return times.",
-            feat_3_title: "Weather Radar & Procession Index",
-            feat_3_text: "Hourly forecasts, precipitation radar and procession suitability index to know the outdoor conditions with confidence.",
-            feat_4_title: "History & Brotherhoods",
-            feat_4_text: "Historical profiles of each Archconfraternity, the meaning of sacred vestments, Passion symbols, and Miserere chants.",
-            feat_5_title: "6 Towns in One Single App",
-            feat_5_text: "Complete peninsula-wide coverage: Sorrento, Sant'Agnello, Piano di Sorrento, Meta, Vico Equense, and Massa Lubrense.",
-            feat_6_title: "Offline First Experience",
-            feat_6_text: "All timetables and route itineraries are stored on your device and remain accessible even without mobile reception in narrow historic alleys.",
-            spotlight_tag: "Live Experience",
-            spotlight_title: "Never wonder where the procession is. Watch it live.",
-            spotlight_desc: "Powered by the satellite Passio Tracker app operated directly by procession leaders, positions are refreshed every 10 seconds onto a high-contrast dark map.",
-            spotlight_pt_1: "Glowing trail displaying procession direction",
-            spotlight_pt_2: "Distance in meters from your current location",
-            spotlight_pt_3: "Distinctive colors for each confraternity habit",
-            radar_active: "GPS LIVE SIGNAL • SORRENTO PENINSULA",
-            conf_section_tag: "Complete Guide",
-            conf_section_title: "What You'll Find in the App",
-            conf_section_desc: "All historical profiles, routes, and official schedules gathered into dedicated, continuously updated cards.",
-            conf_card_1_title: "Centuries of History & Heritage",
-            conf_card_1_text: "Discover the founding origins of each Archconfraternity, polyphonic Miserere choirs, traditional vestments, and Passion relics.",
-            conf_card_2_title: "Routes & Instant Map Jump",
-            conf_card_2_text: "Browse street-by-street itineraries, church altar stops, and jump straight to the live GPS tracking map with a single tap.",
-            conf_card_3_title: "Town Filters & Integrated Weather",
-            conf_card_3_text: "Quickly find any confraternity by name or municipality, checking local hourly weather forecasts and procession suitability index.",
-            faq_tag: "Support & Guidance",
-            faq_title: "Frequently Asked Questions",
-            faq_q1: "Is the application free to use?",
-            faq_a1: "Yes, Passio Sorrento is completely free for all citizens, devotees, and tourists. No intrusive advertisements.",
-            faq_q2: "How does real-time GPS tracking work?",
-            faq_a2: "Procession leaders transmit position signals using the companion 'Passio Tracker' app. Coordinates are broadcast live directly onto the mobile map with historical glowing trails.",
-            faq_q3: "Does the app work offline without internet?",
-            faq_a3: "Yes! All schedules, historical guides, and official route itineraries are cached locally on your device for offline reading.",
-            faq_q4: "Is the app translated into English for international visitors?",
-            faq_a4: "Yes. Passio Sorrento supports both Italian and English, automatically adapting to your preferred device language.",
-            dl_title: "Download Passio Sorrento",
-            dl_desc: "Carry the solemnity and timeless beauty of Holy Week in your pocket.",
-            footer_tagline: "Holy Week in the Sorrento Peninsula",
-            footer_desc: "Independent digital initiative dedicated to preserving, promoting, and sharing the Holy Week traditions of Sorrento.",
-            footer_links_title: "Towns",
-            footer_app_title: "App"
+            feat1_title: "High-Precision GPS",
+            feat1_desc: "Real-time updates of the procession front directly from brotherhood leaders.",
+            feat2_title: "Confraternities Guide",
+            feat2_desc: "Discover the polyphonic Miserere chants, the symbols of the Passion, and deep history.",
+            feat3_title: "Dedicated Weather",
+            feat3_desc: "Hourly forecasts and rain probability to plan your participation safely.",
+            towns_tag: "Territory",
+            towns_title: "Sorrento Peninsula Municipalities",
+            towns_desc: "All solemn rites monitored across the six peninsula towns.",
+            cta_title: "Download Passio Sorrento",
+            cta_desc: "The app is free and available for all Android and iOS devices."
         }
     };
 
-    let currentLang = 'it';
-
+    // -------------------------------------------------------------------------
+    // 2. Language Switcher Logic
+    // -------------------------------------------------------------------------
+    let currentLang = localStorage.getItem('passio_lang') || 'it';
     const langToggleBtn = document.getElementById('langToggle');
-    const flagSpan = langToggleBtn.querySelector('.lang-flag');
-    const codeSpan = langToggleBtn.querySelector('.lang-code');
 
     function updateLanguage(lang) {
         currentLang = lang;
-        document.documentElement.lang = lang;
-        flagSpan.textContent = lang === 'it' ? '🇮🇹' : '🇬🇧';
-        codeSpan.textContent = lang === 'it' ? 'IT' : 'EN';
+        localStorage.setItem('passio_lang', lang);
+
+        if (langToggleBtn) {
+            langToggleBtn.querySelector('.lang-flag').textContent = lang === 'it' ? '🇮🇹' : '🇬🇧';
+            langToggleBtn.querySelector('.lang-code').textContent = lang.toUpperCase();
+        }
 
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
@@ -157,56 +133,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (langToggleBtn) {
         langToggleBtn.addEventListener('click', () => {
-            const newLang = currentLang === 'it' ? 'en' : 'it';
-            updateLanguage(newLang);
+            const nextLang = currentLang === 'it' ? 'en' : 'it';
+            updateLanguage(nextLang);
         });
     }
 
-    // -------------------------------------------------------------------------
-    // 2. Mobile Menu Toggle
-    // -------------------------------------------------------------------------
-    const mobileToggle = document.getElementById('mobileToggle');
-    const navMenu = document.getElementById('navMenu');
-
-    if (mobileToggle && navMenu) {
-        mobileToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('open');
-            mobileToggle.classList.toggle('active');
-        });
-
-        // Close on link click
-        navMenu.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navMenu.classList.remove('open');
-                mobileToggle.classList.remove('active');
-            });
-        });
-    }
+    updateLanguage(currentLang);
 
     // -------------------------------------------------------------------------
-    // 3. FAQ Accordion
-    // -------------------------------------------------------------------------
-    const faqItems = document.querySelectorAll('.faq-item');
-    faqItems.forEach(item => {
-        const questionBtn = item.querySelector('.faq-question');
-        questionBtn.addEventListener('click', () => {
-            const isActive = item.classList.contains('active');
-            faqItems.forEach(i => i.classList.remove('active'));
-            if (!isActive) {
-                item.classList.add('active');
-            }
-        });
-    });
-
-    // -------------------------------------------------------------------------
-    // 4. Header Shadow on Scroll
+    // 3. Header Scroll Effect
     // -------------------------------------------------------------------------
     const header = document.querySelector('.header');
     window.addEventListener('scroll', () => {
-        if (window.scrollY > 30) {
-            header.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.7)';
+        if (window.scrollY > 40) {
+            header.classList.add('scrolled');
         } else {
-            header.style.boxShadow = 'none';
+            header.classList.remove('scrolled');
         }
     });
 });

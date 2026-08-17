@@ -7,13 +7,14 @@
     <meta name="description" content="L'applicazione ufficiale per vivere le Processioni della Settimana Santa in Penisola Sorrentina. Mappa GPS live in tempo reale, orari, itinerari, meteo e confraternite.">
     <meta name="keywords" content="Passio Sorrento, Settimana Santa Sorrento, Incappucciati, Processioni Sorrento, Venerdì Santo Sorrento, Confraternite, GPS Tracking, Holy Week Sorrento">
     <meta name="author" content="Passio Sorrento">
-    <meta name="theme-color" content="#5C1A1B">
+    <meta name="theme-color" content="#6B1724">
+    <link rel="icon" type="image/png" href="assets/logo.png">
 
     <!-- Open Graph / Social -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="Passio Sorrento — Settimana Santa in Penisola Sorrentina">
     <meta property="og:description" content="Segui i cortei degli Incappucciati in tempo reale su mappa GPS. Orari, itinerari, meteo e storia delle confraternite.">
-    <meta property="og:image" content="https://dariocast.github.io/passio-sorrento/og-image.jpg">
+    <meta property="og:image" content="assets/logo.png">
     <meta property="og:locale" content="it_IT">
     <meta property="og:site_name" content="Passio Sorrento">
 
@@ -49,42 +50,30 @@
     </script>
 </head>
 <body>
-    <!-- Background Glow Effects -->
-    <div class="bg-glow bg-glow-1"></div>
-    <div class="bg-glow bg-glow-2"></div>
 
     <!-- Navigation Header -->
     <header class="header">
         <div class="container nav-container">
             <a href="#" class="brand-logo">
-                <span class="cross-icon">♱</span>
+                <img src="assets/logo.png" alt="Passio Sorrento Logo" class="brand-logo-img">
                 <span class="brand-text">Passio<span class="brand-sub">Sorrento</span></span>
             </a>
 
             <nav class="nav-menu" id="navMenu">
+                <a href="#showcase" data-i18n="nav_showcase">L'Applicazione</a>
                 <a href="#features" data-i18n="nav_features">Funzionalità</a>
-                <a href="#map-preview" data-i18n="nav_live_map">Mappa Live</a>
-                <a href="#confraternities" data-i18n="nav_confraternities">Confraternite</a>
-                <a href="#faq" data-i18n="nav_faq">Domande Frequenti</a>
+                <a href="#towns" data-i18n="nav_towns">Comuni</a>
+                <a href="privacy.html" data-i18n="nav_privacy">Privacy</a>
             </nav>
 
             <div class="nav-actions">
                 <!-- Language Selector Toggle -->
-                <div class="lang-switch">
-                    <button id="langToggle" class="lang-btn" aria-label="Cambia Lingua">
-                        <span class="lang-flag">🇮🇹</span>
-                        <span class="lang-code">IT</span>
-                    </button>
-                </div>
+                <button id="langToggle" class="lang-btn" aria-label="Cambia Lingua">
+                    <span class="lang-flag">🇮🇹</span>
+                    <span class="lang-code">IT</span>
+                </button>
 
                 <a href="#download" class="btn btn-gold btn-sm nav-cta" data-i18n="nav_download">Scarica l'App</a>
-
-                <!-- Mobile Hamburger -->
-                <button class="mobile-toggle" id="mobileToggle" aria-label="Menu">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
             </div>
         </div>
     </header>
@@ -103,7 +92,7 @@
                 </h1>
 
                 <p class="hero-subtitle" data-i18n="hero_subtitle">
-                    L'applicazione ufficiale per seguire in tempo reale il corteo degli Incappucciati. Scopri itinerari, orari, previsioni meteo e le secolari Arciconfraternite.
+                    L'applicazione ufficiale per seguire in tempo reale il corteo degli Incappucciati. Scopri itinerari, orari, previsioni meteo e la secolare storia delle Confraternite.
                 </p>
 
                 <div class="hero-cta-group">
@@ -143,310 +132,187 @@
                 </div>
             </div>
 
-            <!-- Interactive Phone Mockup Showcase (Faithful to App Layout) -->
+            <!-- Realistic Smartphone Showcase with Dynamic Switcher -->
             <div class="hero-mockup-wrapper">
                 <div class="phone-frame">
-                    <div class="phone-notch"></div>
                     <div class="phone-screen">
-                        <!-- Simulated App Header -->
-                        <div class="mockup-app-header">
-                            <div class="mockup-status-bar">
-                                <span>21:45</span>
-                                <span>5G • 98%</span>
-                            </div>
-                            <div class="mockup-top-nav">
-                                <span class="mockup-app-title">Passio Sorrento</span>
-                                <span class="mockup-live-pill">● LIVE</span>
-                            </div>
-                        </div>
-
-                        <!-- Simulated Map View with Live Polyline & Pulse -->
-                        <div class="mockup-map">
-                            <div class="map-grid-pattern"></div>
-                            
-                            <!-- Polyline Path SVG -->
-                            <svg class="map-polyline-svg" viewBox="0 0 280 260">
-                                <path d="M 40 210 Q 90 190 120 150 T 170 90 T 230 60" fill="none" stroke="#DAA520" stroke-width="4" stroke-linecap="round" stroke-dasharray="6,4"/>
-                                <path d="M 40 210 Q 90 190 120 150 T 170 90 T 230 60" fill="none" stroke="#DAA520" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
-                            </svg>
-
-                            <!-- Procession Markers (Real Confraternities) -->
-                            <div class="map-marker marker-black" style="top: 50px; left: 215px;">
-                                <div class="marker-pulse"></div>
-                                <div class="marker-pin">♰</div>
-                                <div class="marker-tag" data-i18n="mockup_marker_black">Venerdì Santo (Nera)</div>
-                            </div>
-
-                            <div class="map-marker marker-white" style="top: 140px; left: 105px;">
-                                <div class="marker-pulse pulse-white"></div>
-                                <div class="marker-pin pin-white">♰</div>
-                                <div class="marker-tag" data-i18n="mockup_marker_white">Giovedì Santo (Bianca)</div>
-                            </div>
-
-                            <!-- Floating Procession Card -->
-                            <div class="mockup-bottom-card">
-                                <div class="card-left">
-                                    <div class="confraternity-avatar">♰</div>
-                                    <div>
-                                        <div class="card-title">Arciconfraternita della Morte</div>
-                                        <div class="card-sub">📍 Corso Italia, Sorrento • In movimento</div>
-                                    </div>
-                                </div>
-                                <span class="card-badge">LIVE</span>
-                            </div>
-                        </div>
-
-                        <!-- App Bottom Navigation Bar (Matches AppShell) -->
-                        <div class="mockup-bottom-nav">
-                            <div class="nav-tab-item">
-                                <span class="nav-tab-icon">🏛️</span>
-                                <span>Home</span>
-                            </div>
-                            <div class="nav-tab-item active">
-                                <span class="nav-tab-icon">📍</span>
-                                <span>Mappa</span>
-                            </div>
-                            <div class="nav-tab-item">
-                                <span class="nav-tab-icon">🌦️</span>
-                                <span>Meteo</span>
-                            </div>
-                            <div class="nav-tab-item">
-                                <span class="nav-tab-icon">⚙️</span>
-                                <span>Impostazioni</span>
-                            </div>
-                        </div>
+                        <img id="heroMockupImg" src="assets/screenshots/2_map_tracking.jpeg" alt="Passio Sorrento Live Map">
+                    </div>
+                    <!-- Switcher controls -->
+                    <div class="phone-tabs-bar">
+                        <button class="phone-tab-btn" onclick="changeHeroScreen('assets/screenshots/1_home.png', this)">Home</button>
+                        <button class="phone-tab-btn active" onclick="changeHeroScreen('assets/screenshots/2_map_tracking.jpeg', this)">Mappa</button>
+                        <button class="phone-tab-btn" onclick="changeHeroScreen('assets/screenshots/3_detail.png', this)">Dettaglio</button>
+                        <button class="phone-tab-btn" onclick="changeHeroScreen('assets/screenshots/5_weather.jpeg', this)">Meteo</button>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Key Features Section (Matches Real Mobile App Features) -->
+    <!-- App Screenshots Showcase Section -->
+    <section class="showcase-section" id="showcase">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag" data-i18n="showcase_tag">Uno sguardo all'App</span>
+                <h2 class="section-title" data-i18n="showcase_title">Progettata per fedeli, confratelli e visitatori</h2>
+                <p class="section-desc" data-i18n="showcase_desc">Interfaccia minimale ed elegante, pensata per una consultazione rapida e chiara anche durante i cortei notturni.</p>
+            </div>
+
+            <div class="screenshots-grid">
+                <!-- Card 1: Home -->
+                <div class="screenshot-card">
+                    <div class="screenshot-img-box">
+                        <img src="assets/screenshots/1_home.png" alt="Schermata Home Passio Sorrento" loading="lazy">
+                    </div>
+                    <div class="screenshot-info">
+                        <span class="screenshot-num">01 • Home</span>
+                        <h3 class="screenshot-title" data-i18n="card1_title">Elenco Confraternite</h3>
+                        <p class="screenshot-desc" data-i18n="card1_desc">Tutti i cortei organizzati per comune, con indicazione dello stato in tempo reale e orari.</p>
+                    </div>
+                </div>
+
+                <!-- Card 2: Live Tracking -->
+                <div class="screenshot-card">
+                    <div class="screenshot-img-box">
+                        <img src="assets/screenshots/2_map_tracking.jpeg" alt="Mappa Live Tracking GPS" loading="lazy">
+                    </div>
+                    <div class="screenshot-info">
+                        <span class="screenshot-num">02 • Mappa Live</span>
+                        <h3 class="screenshot-title" data-i18n="card2_title">Tracciamento GPS</h3>
+                        <p class="screenshot-desc" data-i18n="card2_desc">Posizione in tempo reale del corteo, velocità di marcia e percorso lungo le strade peninsulari.</p>
+                    </div>
+                </div>
+
+                <!-- Card 3: Detail Header -->
+                <div class="screenshot-card">
+                    <div class="screenshot-img-box">
+                        <img src="assets/screenshots/3_detail.png" alt="Dettaglio Confraternita" loading="lazy">
+                    </div>
+                    <div class="screenshot-info">
+                        <span class="screenshot-num">03 • Scheda</span>
+                        <h3 class="screenshot-title" data-i18n="card3_title">Storia & Simboli</h3>
+                        <p class="screenshot-desc" data-i18n="card3_desc">Stemma nobiliare, cenni storici, colore del saio e tradizioni secolari di ciascun sodalizio.</p>
+                    </div>
+                </div>
+
+                <!-- Card 4: Detail Route -->
+                <div class="screenshot-card">
+                    <div class="screenshot-img-box">
+                        <img src="assets/screenshots/4_detail.jpeg" alt="Itinerario e Orari" loading="lazy">
+                    </div>
+                    <div class="screenshot-info">
+                        <span class="screenshot-num">04 • Itinerario</span>
+                        <h3 class="screenshot-title" data-i18n="card4_title">Percorso & Tappe</h3>
+                        <p class="screenshot-desc" data-i18n="card4_desc">Itinerario completo via per via con orari di partenza e rientro previsti.</p>
+                    </div>
+                </div>
+
+                <!-- Card 5: Weather -->
+                <div class="screenshot-card">
+                    <div class="screenshot-img-box">
+                        <img src="assets/screenshots/5_weather.jpeg" alt="Meteo e Previsioni" loading="lazy">
+                    </div>
+                    <div class="screenshot-info">
+                        <span class="screenshot-num">05 • Meteo</span>
+                        <h3 class="screenshot-title" data-i18n="card5_title">Meteo & Radar</h3>
+                        <p class="screenshot-desc" data-i18n="card5_desc">Previsioni costantemente aggiornate per ciascun comune peninsulare con focus pioggia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Features Section -->
     <section class="features-section" id="features">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag" data-i18n="features_tag">Tecnologia & Tradizione</span>
+                <span class="section-tag" data-i18n="features_tag">Caratteristiche</span>
                 <h2 class="section-title" data-i18n="features_title">Tutto quello che serve per vivere i Riti Sacri</h2>
                 <p class="section-desc" data-i18n="features_desc">Un connubio perfetto tra la solennità delle tradizioni secolari e la precisione del tracciamento GPS in tempo reale.</p>
             </div>
 
             <div class="features-grid">
-                <!-- Feature Card 1 -->
                 <div class="feature-card">
-                    <div class="feature-icon-box gold">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_1_title">Tracciamento GPS con Scia Storica</h3>
-                    <p class="feature-text" data-i18n="feat_1_text">Visualizza la posizione esatta del corteo con la scia storica del percorso. Aggiornato ogni 10 secondi per non perdere mai il passaggio.</p>
+                    <div class="feature-icon-box">📡</div>
+                    <h3 class="feature-title" data-i18n="feat1_title">GPS ad Alta Precisione</h3>
+                    <p class="feature-desc" data-i18n="feat1_desc">Aggiornamento automatico costante della testa del corteo direttamente dai trasmettitori dei capofila.</p>
                 </div>
 
-                <!-- Feature Card 2 -->
                 <div class="feature-card">
-                    <div class="feature-icon-box primary">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_2_title">Itinerari & Orari Ufficiali</h3>
-                    <p class="feature-text" data-i18n="feat_2_text">Programma completo di tutte le processioni: orario di uscita dalla chiesa, tappe nei Sepolcri e orario stimato di rientro.</p>
+                    <div class="feature-icon-box">🏛️</div>
+                    <h3 class="feature-title" data-i18n="feat2_title">Guida alle Confraternite</h3>
+                    <p class="feature-desc" data-i18n="feat2_desc">Scopri l'origine dei canti del Miserere, il significato dei simboli e la storia dei sodalizi.</p>
                 </div>
 
-                <!-- Feature Card 3 -->
                 <div class="feature-card">
-                    <div class="feature-icon-box dark">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_3_title">Meteo & Indice Processione</h3>
-                    <p class="feature-text" data-i18n="feat_3_text">Previsioni meteo orarie, probabilità di pioggia e calcolo dell'indice di idoneità per sapere con certezza le condizioni delle uscite.</p>
-                </div>
-
-                <!-- Feature Card 4 -->
-                <div class="feature-card">
-                    <div class="feature-icon-box gold">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_4_title">Storia & Confraternite</h3>
-                    <p class="feature-text" data-i18n="feat_4_text">Schede storiche dettagliate su ogni Arciconfraternita, il significato degli abiti, dei simboli della Passione e dei cori del Miserere.</p>
-                </div>
-
-                <!-- Feature Card 5 -->
-                <div class="feature-card">
-                    <div class="feature-icon-box primary">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_5_title">6 Comuni in una Sola App</h3>
-                    <p class="feature-text" data-i18n="feat_5_text">Copertura completa dell'intera costiera: Sorrento, Sant'Agnello, Piano di Sorrento, Meta, Vico Equense e Massa Lubrense.</p>
-                </div>
-
-                <!-- Feature Card 6 -->
-                <div class="feature-card">
-                    <div class="feature-icon-box dark">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M3 12h18"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="feat_6_title">Funzionamento Offline</h3>
-                    <p class="feature-text" data-i18n="feat_6_text">Tutti i programmi e gli itinerari sono salvati nella memoria del dispositivo e rimangono consultabili anche tra i vicoli storici senza segnale.</p>
+                    <div class="feature-icon-box">🌦️</div>
+                    <h3 class="feature-title" data-i18n="feat3_title">Meteo Dedicato</h3>
+                    <p class="feature-desc" data-i18n="feat3_desc">Monitoraggio meteo orario e probabilità di pioggia per pianificare la partecipazione in sicurezza.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Interactive Map Spotlight Section -->
-    <section class="spotlight-section" id="map-preview">
-        <div class="container spotlight-container">
-            <div class="spotlight-card">
-                <div class="spotlight-info">
-                    <span class="section-tag gold" data-i18n="spotlight_tag">Esperienza Live</span>
-                    <h2 class="spotlight-title" data-i18n="spotlight_title">Non domandarti più dov'è il corteo. Guardalo in diretta.</h2>
-                    <p class="spotlight-text" data-i18n="spotlight_desc">Grazie all'app satellite Passio Tracker utilizzata direttamente dai capofila, le posizioni GPS vengono aggiornate ogni 10 secondi e proiettate su una mappa dettagliata con stile notte ad alto contrasto.</p>
-                    
-                    <div class="spotlight-points">
-                        <div class="spotlight-point">
-                            <span class="point-icon">✓</span>
-                            <span data-i18n="spotlight_pt_1">Scia luminosa che indica il senso di marcia</span>
-                        </div>
-                        <div class="spotlight-point">
-                            <span class="point-icon">✓</span>
-                            <span data-i18n="spotlight_pt_2">Distanza in metri rispetto alla tua posizione attuale</span>
-                        </div>
-                        <div class="spotlight-point">
-                            <span class="point-icon">✓</span>
-                            <span data-i18n="spotlight_pt_3">Differenziazione visiva per colore confraternita</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="spotlight-visual">
-                    <div class="live-map-card">
-                        <div class="live-status-header">
-                            <div class="radar-dot"></div>
-                            <span class="radar-text" data-i18n="radar_active">GPS LIVE SIGNAL • PENISOLA SORRENTINA</span>
-                        </div>
-                        <div class="live-coords">
-                            <span>40.6263° N, 14.3758° E</span>
-                            <span class="badge-active">LIVE</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Confraternities In-App Guide Showcase -->
-    <section class="confraternities-section" id="confraternities">
+    <!-- Municipalities Section -->
+    <section class="towns-section" id="towns">
         <div class="container">
             <div class="section-header">
-                <span class="section-tag" data-i18n="conf_section_tag">Guida Completa</span>
-                <h2 class="section-title" data-i18n="conf_section_title">Cosa trovi nell'App sulle Confraternite</h2>
-                <p class="section-desc" data-i18n="conf_section_desc">Tutte le informazioni storiche, i percorsi e i programmi ufficiali raccolti in schede dedicate e sempre aggiornate.</p>
+                <span class="section-tag" data-i18n="towns_tag">Territorio</span>
+                <h2 class="section-title" data-i18n="towns_title">I Comuni della Penisola Sorrentina</h2>
+                <p class="section-desc" data-i18n="towns_desc">Tutti i riti e le processioni solenni monitorati nei sei comuni peninsulari.</p>
             </div>
 
-            <div class="features-grid">
-                <!-- 1. Schede Storiche & Tradizioni -->
-                <div class="feature-card">
-                    <div class="feature-icon-box gold">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="conf_card_1_title">Storia & Devozione Secolare</h3>
-                    <p class="feature-text" data-i18n="conf_card_1_text">Approfondisci le origini di ogni Arciconfraternita, i canti polifonici del Miserere, il significato degli abiti e i simboli della Passione.</p>
+            <div class="towns-grid">
+                <div class="town-card">
+                    <div class="town-name">Sorrento</div>
+                    <div class="town-tag">Processione Bianca & Nera</div>
                 </div>
-
-                <!-- 2. Itinerari & Mappe Dirette -->
-                <div class="feature-card">
-                    <div class="feature-icon-box primary">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"/><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="conf_card_2_title">Itinerari & Collegamento Mappa</h3>
-                    <p class="feature-text" data-i18n="conf_card_2_text">Consulta le vie attraversate, gli orari previsti di passaggio nei Sepolcri e passa con un tocco alla visualizzazione GPS in tempo reale.</p>
+                <div class="town-card">
+                    <div class="town-name">Piano di Sorrento</div>
+                    <div class="town-tag">Morte ed Orazione & Trinità</div>
                 </div>
-
-                <!-- 3. Meteo Comune & Ricerca Rapida -->
-                <div class="feature-card">
-                    <div class="feature-icon-box dark">
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    </div>
-                    <h3 class="feature-title" data-i18n="conf_card_3_title">Filtri & Meteo Integrato</h3>
-                    <p class="feature-text" data-i18n="conf_card_3_text">Trova subito qualsiasi confraternita per nome o comune della Penisola e visualizza istantaneamente le condizioni meteo e l'indice processione.</p>
+                <div class="town-card">
+                    <div class="town-name">Sant'Agnello</div>
+                    <div class="town-tag">SS. Sacramento & Gonfalone</div>
+                </div>
+                <div class="town-card">
+                    <div class="town-name">Meta</div>
+                    <div class="town-tag">SS. Crocifisso & Immacolata</div>
+                </div>
+                <div class="town-card">
+                    <div class="town-name">Massa Lubrense</div>
+                    <div class="town-tag">Morte e Orazione</div>
+                </div>
+                <div class="town-card">
+                    <div class="town-name">Vico Equense</div>
+                    <div class="town-tag">Corteo Storico & Riti</div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FAQ Section -->
-    <section class="faq-section" id="faq">
-        <div class="container faq-container">
-            <div class="section-header">
-                <span class="section-tag" data-i18n="faq_tag">Chiarezza & Supporto</span>
-                <h2 class="section-title" data-i18n="faq_title">Domande Frequenti</h2>
-            </div>
-
-            <div class="faq-accordion">
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span data-i18n="faq_q1">L'applicazione è gratuita?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p data-i18n="faq_a1">Sì, Passio Sorrento è totalmente gratuita per tutti i cittadini, fedeli e turisti. Non contiene pubblicità invasive.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span data-i18n="faq_q2">Come funziona il tracciamento GPS in tempo reale?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p data-i18n="faq_a2">I capofila delle Confraternite utilizzano l'app di trasmissione "Passio Tracker" durante il corteo. I dati di geolocalizzazione vengono trasmessi in tempo reale e proiettati istantaneamente sulla mappa dell'app mobile con scia luminosa del percorso.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span data-i18n="faq_q3">L'app funziona anche offline o senza connessione veloce?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p data-i18n="faq_a3">Sì! Tutti gli orari, le schede storiche e gli itinerari ufficiali vengono memorizzati nella memoria del telefono e sono consultabili anche in assenza di segnale.</p>
-                    </div>
-                </div>
-
-                <div class="faq-item">
-                    <button class="faq-question">
-                        <span data-i18n="faq_q4">L'app è disponibile in lingua inglese per i turisti stranieri?</span>
-                        <span class="faq-icon">+</span>
-                    </button>
-                    <div class="faq-answer">
-                        <p data-i18n="faq_a4">Certamente. L'app rileva automaticamente la lingua dello smartphone (italiano o inglese) e adatta tutte le descrizioni, orari e mappe per accogliere al meglio i visitatori internazionali.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Download CTA Section -->
-    <section class="download-section" id="download">
-        <div class="container download-container">
-            <div class="download-card">
-                <div class="download-content">
-                    <span class="download-cross">♰</span>
-                    <h2 class="download-title" data-i18n="dl_title">Scarica Passio Sorrento</h2>
-                    <p class="download-desc" data-i18n="dl_desc">Porta la solennità e la bellezza della Settimana Santa sempre con te sul tuo smartphone.</p>
-                    
-                    <div class="hero-cta-group centered">
-                        <a href="#" class="btn btn-gold">
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.71-.93 2.73 1 .08 2.02-.48 2.64-1.23z"/></svg>
-                            <div class="btn-text">
-                                <span class="small">Scarica su</span>
-                                <span class="bold">App Store</span>
-                            </div>
-                        </a>
-
-                        <a href="#" class="btn btn-dark">
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.02 2.02 0 0 1-.225-.952V2.766c0-.361.08-.692.224-.952zm11.235 11.234l2.529 2.53-12.015 6.94 9.486-9.47zm0-2.096L5.358 1.466 17.373 8.41l-2.529 2.542zm1.484 1.484l3.195-1.846c1.171-.676 1.171-1.782 0-2.458L16.328 10.3l-1.484 1.484 1.484 1.484z"/></svg>
-                            <div class="btn-text">
-                                <span class="small">Disponibile su</span>
-                                <span class="bold">Google Play</span>
-                            </div>
-                        </a>
-                    </div>
+    <!-- Download CTA Banner -->
+    <section class="cta-section" id="download">
+        <div class="container">
+            <div class="cta-banner">
+                <h2 class="cta-title" data-i18n="cta_title">Scarica Passio Sorrento</h2>
+                <p class="cta-desc" data-i18n="cta_desc">L'applicazione è gratuita e disponibile per tutti i dispositivi Android e iOS.</p>
+                <div class="cta-buttons">
+                    <a href="#download" class="btn btn-gold">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.37c.62-.75 1.04-1.8 0.92-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.71-.93 2.73 1 .08 2.02-.48 2.64-1.23z"/></svg>
+                        <div class="btn-text">
+                            <span class="small">Scarica su</span>
+                            <span class="bold">App Store</span>
+                        </div>
+                    </a>
+                    <a href="#download" class="btn btn-dark">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M3.609 1.814L13.792 12 3.61 22.186a2.02 2.02 0 0 1-.225-.952V2.766c0-.361.08-.692.224-.952zm11.235 11.234l2.529 2.53-12.015 6.94 9.486-9.47zm0-2.096L5.358 1.466 17.373 8.41l-2.529 2.542zm1.484 1.484l3.195-1.846c1.171-.676 1.171-1.782 0-2.458L16.328 10.3l-1.484 1.484 1.484 1.484z"/></svg>
+                        <div class="btn-text">
+                            <span class="small">Disponibile su</span>
+                            <span class="bold">Google Play</span>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
@@ -454,52 +320,26 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="container footer-grid">
-            <div class="footer-brand">
-                <a href="#" class="brand-logo">
-                    <span class="cross-icon">♱</span>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="brand-logo">
+                    <img src="assets/logo.png" alt="Passio Sorrento Logo" class="brand-logo-img">
                     <span class="brand-text">Passio<span class="brand-sub">Sorrento</span></span>
-                </a>
-                <p class="footer-tagline" data-i18n="footer_tagline">Settimana Santa in Penisola Sorrentina</p>
-                <p class="footer-desc" data-i18n="footer_desc">Progetto digitale indipendente dedicato alla salvaguardia, valorizzazione e condivisione dei Riti Pasquali della Penisola Sorrentina.</p>
-            </div>
-
-            <div class="footer-links-col">
-                <h4 class="footer-heading" data-i18n="footer_links_title">Comuni</h4>
-                <ul>
-                    <li><a href="#confraternities">Sorrento</a></li>
-                    <li><a href="#confraternities">Sant'Agnello</a></li>
-                    <li><a href="#confraternities">Piano di Sorrento</a></li>
-                    <li><a href="#confraternities">Meta</a></li>
-                    <li><a href="#confraternities">Vico Equense</a></li>
-                    <li><a href="#confraternities">Massa Lubrense</a></li>
-                </ul>
-            </div>
-
-            <div class="footer-links-col">
-                <h4 class="footer-heading" data-i18n="footer_app_title">App</h4>
-                <ul>
-                    <li><a href="#download">Passio Sorrento (iOS)</a></li>
-                    <li><a href="#download">Passio Sorrento (Android)</a></li>
-                    <li><a href="#features">Passio Tracker (Capofila)</a></li>
-                    <li><a href="#faq">Supporto & FAQ</a></li>
-                </ul>
-            </div>
-        </div>
-
-        <div class="footer-bottom">
-            <div class="container footer-bottom-flex">
-                <p>© 2026 Passio Sorrento • Tutti i diritti riservati.</p>
-                <div class="footer-meta-links">
-                    <a href="#">Privacy Policy</a>
-                    <span>•</span>
-                    <a href="#">Termini di Servizio</a>
                 </div>
+                <div class="footer-links">
+                    <a href="#showcase" data-i18n="nav_showcase">L'Applicazione</a>
+                    <a href="#features" data-i18n="nav_features">Funzionalità</a>
+                    <a href="privacy.html" data-i18n="nav_privacy">Privacy Policy</a>
+                    <a href="https://github.com/dariocast/passio-sorrento" target="_blank" rel="noopener">GitHub</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Passio Sorrento. Tutti i diritti riservati. Progetto dedicato alle tradizioni della Penisola Sorrentina.</p>
             </div>
         </div>
     </footer>
 
-    <!-- Script -->
+    <!-- Scripts -->
     <script src="script.js"></script>
 </body>
 </html>
