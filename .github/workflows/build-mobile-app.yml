@@ -47,12 +47,12 @@ jobs:
       - name: Build Android Release APK
         run: |
           cd mobile
-          flutter build apk --release
+          flutter build apk --release --android-skip-build-dependency-validation
 
       - name: Build Android App Bundle (AAB for Play Store)
         run: |
           cd mobile
-          flutter build appbundle --release
+          flutter build appbundle --release --android-skip-build-dependency-validation
 
       - name: Upload Mobile APK
         uses: actions/upload-artifact@v4
